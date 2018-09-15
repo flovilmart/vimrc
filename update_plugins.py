@@ -58,6 +58,7 @@ mru.vim https://github.com/vim-scripts/mru.vim
 vim-markdown https://github.com/plasticboy/vim-markdown
 comfortable-motion.vim https://github.com/yuttie/comfortable-motion.vim
 vim-tmux-navigator https://github.com/christoomey/vim-tmux-navigator
+vim-devicons https://github.com/ryanoasis/vim-devicons
 """.strip()
 
 GITHUB_ZIP = '%s/archive/master.zip'
