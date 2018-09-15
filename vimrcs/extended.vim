@@ -73,6 +73,12 @@ cnoremap <C-K>		<C-U>
 cnoremap <C-P> <Up>
 cnoremap <C-N> <Down>
 
+" move around the panes
+nnoremap <c-j> <c-w>j
+nnoremap <c-k> <c-w>k
+nnoremap <c-h> <c-w>h
+nnoremap <c-l> <c-w>l
+
 " Map ½ to something useful
 map ½ $
 cmap ½ $
