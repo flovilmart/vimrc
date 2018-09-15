@@ -35,7 +35,7 @@ let s:packages = {
       \ 'dlv':           ['github.com/derekparker/delve/cmd/dlv'],
       \ 'errcheck':      ['github.com/kisielk/errcheck'],
       \ 'fillstruct':    ['github.com/davidrjenni/reftools/cmd/fillstruct'],
-      \ 'gocode':        ['github.com/nsf/gocode', {'windows': ['-ldflags', '-H=windowsgui']}],
+      \ 'gocode':        ['github.com/mdempsky/gocode', {'windows': ['-ldflags', '-H=windowsgui']}],
       \ 'godef':         ['github.com/rogpeppe/godef'],
       \ 'gogetdoc':      ['github.com/zmb3/gogetdoc'],
       \ 'goimports':     ['golang.org/x/tools/cmd/goimports'],
@@ -201,14 +201,14 @@ endfunction
 function! s:auto_type_info()
   " GoInfo automatic update
   if get(g:, "go_auto_type_info", 0)
-    call go#tool#Info()
+    call go#tool#Info(0)
   endif
 endfunction
 
 function! s:auto_sameids()
   " GoSameId automatic update
   if get(g:, "go_auto_sameids", 0)
-    call go#guru#SameIds()
+    call go#guru#SameIds(0)
   endif
 endfunction
 
@@ -223,6 +223,13 @@ function! s:asmfmt_autosave()
   " Go asm formatting on save
   if get(g:, "go_asmfmt_autosave", 0)
     call go#asmfmt#Format()
+  endif
+endfunction
+
+function! s:modfmt_autosave()
+  " go.mod code formatting on save
+  if get(g:, "go_mod_fmt_autosave", 1)
+    call go#mod#Format()
   endif
 endfunction
 
@@ -253,6 +260,7 @@ augroup vim-go
   endif
 
   autocmd BufWritePre *.go call s:fmt_autosave()
+  autocmd BufWritePre *.mod call s:modfmt_autosave()
   autocmd BufWritePre *.s call s:asmfmt_autosave()
   autocmd BufWritePost *.go call s:metalinter_autosave()
   autocmd BufNewFile *.go call s:template_autocreate()
