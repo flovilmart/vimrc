@@ -59,6 +59,7 @@ vim-markdown https://github.com/plasticboy/vim-markdown
 comfortable-motion.vim https://github.com/yuttie/comfortable-motion.vim
 vim-tmux-navigator https://github.com/christoomey/vim-tmux-navigator
 vim-devicons https://github.com/ryanoasis/vim-devicons
+vim-nerdtree-tabs https://github.com/jistr/vim-nerdtree-tabs
 """.strip()
 
 GITHUB_ZIP = '%s/archive/master.zip'
