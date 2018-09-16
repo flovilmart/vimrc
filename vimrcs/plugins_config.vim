@@ -90,13 +90,13 @@ let NERDTreeIgnore = ['\.pyc$', '__pycache__']
 let g:NERDTreeWinSize=35
 map <leader>nn :NERDTreeToggle<cr>
 map <leader>nb :NERDTreeFromBookmark<Space>
-map <leader>nf :NERDTreeFind<cr>
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => nerdtree-tabs
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:nerdtree_tabs_open_on_console_startup=1
+map <leader>nf :NERDTreeTabsFind<cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => vim-multiple-cursors
