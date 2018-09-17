@@ -60,6 +60,8 @@ comfortable-motion.vim https://github.com/yuttie/comfortable-motion.vim
 vim-tmux-navigator https://github.com/christoomey/vim-tmux-navigator
 vim-devicons https://github.com/ryanoasis/vim-devicons
 vim-nerdtree-tabs https://github.com/jistr/vim-nerdtree-tabs
+typescript-vim https://github.com/leafgarland/typescript-vim
+tsuquyomi https://github.com/Quramy/tsuquyomi
 """.strip()
 
 GITHUB_ZIP = '%s/archive/master.zip'
