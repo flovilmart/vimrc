@@ -41,6 +41,9 @@ filetype indent on
 " Set to auto read when a file is changed from the outside
 set autoread
 
+" allow mouse support
+set mouse=a
+
 " With a map leader it's possible to do extra key combinations
 " like <leader>w saves the current file
 let mapleader = ","
