@@ -177,11 +177,11 @@ set noswapfile
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Text, tab and indent related
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Use spaces instead of tabs
-set expandtab
-
 " Be smart when using tabs ;)
 set smarttab
+
+" Use spaces instead of tabs
+set expandtab
 
 " 1 tab == 4 spaces
 set shiftwidth=2

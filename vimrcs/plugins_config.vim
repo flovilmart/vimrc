@@ -48,6 +48,7 @@ let g:ctrlp_working_path_mode = 0
 let g:ctrlp_map = '<c-f>'
 map <leader>j :CtrlP<cr>
 map <c-b> :CtrlPBuffer<cr>
+map <c-f><c-r> :CtrlPClearCache<cr>
 
 let g:ctrlp_max_height = 20
 let g:ctrlp_custom_ignore = 'node_modules\|^\.DS_Store\|^\.git\|^\.coffee'
@@ -169,7 +170,7 @@ let g:go_fmt_command = "goimports"
 " => Syntastic (syntax checker)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:ale_linters = {
-\   'javascript': ['jshint'],
+\   'javascript': ['tsserver','eslint', 'prettier', 'flow'],
 \   'python': ['flake8'],
 \   'go': ['go', 'golint', 'errcheck']
 \}
@@ -178,10 +179,15 @@ nmap <silent> <leader>a <Plug>(ale_next_wrap)
 
 " Disabling highlighting
 let g:ale_set_highlights = 0
+let g:ale_sign_column_always = 1
 
 " Only run linting when saving the file
 let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_enter = 0
+let g:ale_lint_on_enter = 1
+let g:ale_lint_on_save = 1
+let g:ale_javascript_eslint_use_global = 1
+let g:ale_javascript_tsserver_use_global = 1
+map <C-]> :ALEGoToDefinition<cr>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
