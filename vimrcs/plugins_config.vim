@@ -39,10 +39,19 @@ let g:yankstack_yank_keys = ['y', 'd']
 nmap <c-p> <Plug>yankstack_substitute_older_paste
 nmap <c-n> <Plug>yankstack_substitute_newer_paste
 
+""""""""""""""""""""""""""""""
+" => FZF
+""""""""""""""""""""""""""""""
 set rtp+=/usr/local/opt/fzf
 nmap ; :Buffers<CR>
-nmap <Leader>. :Files<CR>
+nmap <Leader>o :Files<CR>
 nmap <Leader>r :Tags<CR>
+
+nmap <Leader>a :Ag <CR>
+nmap <M-k>    :Ack! "\b<cword>\b" <CR>
+nmap <Esc>k   :Ack! "\b<cword>\b" <CR>
+nmap <M-S-k>  :Ggrep! "\b<cword>\b" <CR>
+nmap <Esc>K   :Ggrep! "\b<cword>\b" <CR>
 
 """"""""""""""""""""""""""""""
 " => ZenCoding
