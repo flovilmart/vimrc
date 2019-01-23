@@ -1,4 +1,5 @@
 !_TAG_FILE_ENCODING	utf-8	//
+:TsuAsyncGeterr	tsuquyomi.jax	/*:TsuAsyncGeterr*
 :TsuClose	tsuquyomi.jax	/*:TsuClose*
 :TsuDefinition	tsuquyomi.jax	/*:TsuDefinition*
 :TsuDump	tsuquyomi.jax	/*:TsuDump*
@@ -14,11 +15,13 @@
 :TsuRenameSymbol	tsuquyomi.jax	/*:TsuRenameSymbol*
 :TsuRenameSymbolC	tsuquyomi.jax	/*:TsuRenameSymbolC*
 :TsuSearch	tsuquyomi.jax	/*:TsuSearch*
+:TsuSignatureHelp	tsuquyomi.jax	/*:TsuSignatureHelp*
 :TsuSplitDefinition	tsuquyomi.jax	/*:TsuSplitDefinition*
 :TsuStartServer	tsuquyomi.jax	/*:TsuStartServer*
 :TsuStatusServer	tsuquyomi.jax	/*:TsuStatusServer*
 :TsuStopServer	tsuquyomi.jax	/*:TsuStopServer*
 :TsuTypeDefinition	tsuquyomi.jax	/*:TsuTypeDefinition*
+:TsuquyomiAsyncGeterr	tsuquyomi.jax	/*:TsuquyomiAsyncGeterr*
 :TsuquyomiClose	tsuquyomi.jax	/*:TsuquyomiClose*
 :TsuquyomiDefinition	tsuquyomi.jax	/*:TsuquyomiDefinition*
 :TsuquyomiDump	tsuquyomi.jax	/*:TsuquyomiDump*
@@ -34,6 +37,7 @@
 :TsuquyomiRenameSymbol	tsuquyomi.jax	/*:TsuquyomiRenameSymbol*
 :TsuquyomiRenameSymbolC	tsuquyomi.jax	/*:TsuquyomiRenameSymbolC*
 :TsuquyomiSeaarch	tsuquyomi.jax	/*:TsuquyomiSeaarch*
+:TsuquyomiSignatureHelp	tsuquyomi.jax	/*:TsuquyomiSignatureHelp*
 :TsuquyomiSplitDefinition	tsuquyomi.jax	/*:TsuquyomiSplitDefinition*
 :TsuquyomiStartServer	tsuquyomi.jax	/*:TsuquyomiStartServer*
 :TsuquyomiStatusServer	tsuquyomi.jax	/*:TsuquyomiStatusServer*
@@ -47,9 +51,12 @@
 <Plug>(TsuquyomiReferences)	tsuquyomi.jax	/*<Plug>(TsuquyomiReferences)*
 <Plug>(TsuquyomiRenameSymbol)	tsuquyomi.jax	/*<Plug>(TsuquyomiRenameSymbol)*
 <Plug>(TsuquyomiRenameSymbolC)	tsuquyomi.jax	/*<Plug>(TsuquyomiRenameSymbolC)*
+<Plug>(TsuquyomiSignatureHelp)	tsuquyomi.jax	/*<Plug>(TsuquyomiSignatureHelp)*
 <Plug>(TsuquyomiSplitDefinition)	tsuquyomi.jax	/*<Plug>(TsuquyomiSplitDefinition)*
 <Plug>(TsuquyomiTypeDefinition)	tsuquyomi.jax	/*<Plug>(TsuquyomiTypeDefinition)*
 g:tsuquyomi_auto_open	tsuquyomi.jax	/*g:tsuquyomi_auto_open*
+g:tsuquyomi_baseurl_import_path	tsuquyomi.jax	/*g:tsuquyomi_baseurl_import_path*
+g:tsuquyomi_case_sensitive_imports	tsuquyomi.jax	/*g:tsuquyomi_case_sensitive_imports*
 g:tsuquyomi_completion_case_sensitive	tsuquyomi.jax	/*g:tsuquyomi_completion_case_sensitive*
 g:tsuquyomi_completion_detail	tsuquyomi.jax	/*g:tsuquyomi_completion_detail*
 g:tsuquyomi_completion_preview	tsuquyomi.jax	/*g:tsuquyomi_completion_preview*
@@ -65,6 +72,7 @@ g:tsuquyomi_single_quote_import	tsuquyomi.jax	/*g:tsuquyomi_single_quote_import*
 g:tsuquyomi_tsserver_path	tsuquyomi.jax	/*g:tsuquyomi_tsserver_path*
 g:tsuquyomi_use_dev_node_module	tsuquyomi.jax	/*g:tsuquyomi_use_dev_node_module*
 g:tsuquyomi_use_local_typescript	tsuquyomi.jax	/*g:tsuquyomi_use_local_typescript*
+g:tsuquyomi_use_vimproc	tsuquyomi.jax	/*g:tsuquyomi_use_vimproc*
 tsuquyomi	tsuquyomi.jax	/*tsuquyomi*
 tsuquyomi#balloonexpr	tsuquyomi.jax	/*tsuquyomi#balloonexpr*
 tsuquyomi#complete	tsuquyomi.jax	/*tsuquyomi#complete*
@@ -73,6 +81,7 @@ tsuquyomi#hint	tsuquyomi.jax	/*tsuquyomi#hint*
 tsuquyomi-commands	tsuquyomi.jax	/*tsuquyomi-commands*
 tsuquyomi-contents	tsuquyomi.jax	/*tsuquyomi-contents*
 tsuquyomi-examples	tsuquyomi.jax	/*tsuquyomi-examples*
+tsuquyomi-examples-async	tsuquyomi.jax	/*tsuquyomi-examples-async*
 tsuquyomi-examples-complete	tsuquyomi.jax	/*tsuquyomi-examples-complete*
 tsuquyomi-functions	tsuquyomi.jax	/*tsuquyomi-functions*
 tsuquyomi-install	tsuquyomi.jax	/*tsuquyomi-install*

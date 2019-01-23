@@ -29,14 +29,19 @@ endif
 
 let s:request_seq = 0
 
-let s:ignore_respons_conditions = []
+let s:ignore_response_conditions = []
 " ignore events configFileDiag triggered by reload event. See also #99
-call add(s:ignore_respons_conditions, '"type":"event","event":"configFileDiag"')
-call add(s:ignore_respons_conditions, '"type":"event","event":"requestCompleted"')
-call add(s:ignore_respons_conditions, '"type":"event","event":"telemetry"')
-call add(s:ignore_respons_conditions, '"type":"event","event":"projectsUpdatedInBackground"')
-call add(s:ignore_respons_conditions, '"type":"event","event":"typingsInstallerPid"')
-call add(s:ignore_respons_conditions, 'npm notice created a lockfile')
+call add(s:ignore_response_conditions, '"type":"event","event":"configFileDiag"')
+call add(s:ignore_response_conditions, '"type":"event","event":"telemetry"')
+call add(s:ignore_response_conditions, '"type":"event","event":"projectsUpdatedInBackground"')
+call add(s:ignore_response_conditions, '"type":"event","event":"typingsInstallerPid"')
+call add(s:ignore_response_conditions, 'npm notice created a lockfile')
+
+" ### Async variables
+let s:callbacks = {}
+let s:notify_callback = {}
+let s:quickfix_list = []
+" ### }}}
 
 " ### Utilites {{{
 function! s:error(msg)
@@ -78,10 +83,13 @@ function! s:startTssVim8()
   endif
   let l:cmd = substitute(tsuquyomi#config#tsscmd(), '\\', '\\\\', 'g').' '.tsuquyomi#config#tssargs()
   try
-    let s:tsq['job'] = job_start(l:cmd)
+    let s:tsq['job'] = job_start(l:cmd, {
+      \ 'out_cb': {ch, msg -> tsuquyomi#tsClient#handleMessage(ch, msg)},
+      \ })
+
     let s:tsq['channel'] = job_getchannel(s:tsq['job'])
 
-    let out =  ch_readraw(s:tsq['channel'])
+    let out = ch_readraw(s:tsq['channel'])
     let st = tsuquyomi#tsClient#statusTss()
     if !g:tsuquyomi_tsserver_debug
       if err != ''
@@ -94,6 +102,17 @@ function! s:startTssVim8()
   endtry
   return 1
 endfunction
+
+function! s:getEventType(item)
+  if has_key(a:item, 'type') && a:item.type ==# 'event'
+    \ && (a:item.event ==# 'syntaxDiag'
+      \ || a:item.event ==# 'semanticDiag'
+      \ || a:item.event ==# 'requestCompleted')
+    return 'diagnostics'
+  endif
+  return 0
+endfunction
+
 
 function! tsuquyomi#tsClient#startTss()
   if !s:is_vim8 || g:tsuquyomi_use_vimproc
@@ -117,6 +136,29 @@ function! tsuquyomi#tsClient#stopTss()
   endif
 endfunction
 
+function! tsuquyomi#tsClient#stopTssSync() abort
+  let res = tsuquyomi#tsClient#stopTss()
+  call s:ensureStatus('dead')
+  return res
+endfunction
+
+" Wait for the status to become the argument.
+" Note: It throws an error to avoid infinite loop after 1s.
+function! s:ensureStatus(expected) abort
+  let cnt = 0
+  while v:true
+    let got = tsuquyomi#tsClient#statusTss()
+    if got ==# a:expected
+      return
+    endif
+    if cnt > 100
+      throw "TSServer status does not become " . a:expected . " in 1s. It is " . got . "."
+    endif
+    let cnt += 1
+    sleep 10m
+  endwhile
+endfunction
+
 " RETURNS: {string} 'run' or 'dead'
 function! tsuquyomi#tsClient#statusTss()
   try
@@ -133,8 +175,75 @@ function! tsuquyomi#tsClient#statusTss()
       return job_info(s:tsq['job']).status
     endif
   catch
-    return 'dead' 
+    return 'dead'
   endtry
+endfunction
+
+"
+"Read diagnostics and add to QuickList.
+"
+" PARAM: {dict} response
+function! tsuquyomi#tsClient#readDiagnostics(item)
+  if a:item.event == 'requestCompleted'
+    if has_key(s:notify_callback, 'diagnostics')
+      let Callback = function(s:notify_callback['diagnostics'], [s:quickfix_list])
+      call Callback()
+      let s:quickfix_list = []
+    endif
+  else
+    " Cache syntaxDiag and semanticDiag messages until request was completed.
+    let l:qflist = tsuquyomi#parseDiagnosticEvent(a:item, [])
+    let s:quickfix_list += l:qflist
+  endif
+endfunction
+
+function! tsuquyomi#tsClient#registerNotify(callback, key)
+  let s:notify_callback[a:key] = a:callback
+endfunction
+
+"
+" Handle TSServer responses.
+"
+function! tsuquyomi#tsClient#handleMessage(ch, msg)
+  if type(a:msg) != 1 || a:msg == ''
+    " Not a string or blank message.
+    return
+  endif
+  let l:res_item = substitute(a:msg, 'Content-Length: \d\+', '', 'g')
+  if l:res_item == ''
+    " Ignore content-length.
+    return
+  endif
+  " Ignore messages.
+  let l:to_be_ignored = 0
+  for ignore_reg in s:ignore_response_conditions
+    let l:to_be_ignored = l:to_be_ignored || (l:res_item =~ ignore_reg)
+    if l:to_be_ignored
+      return
+    endif
+  endfor
+  let l:item = json_decode(l:res_item)
+  let l:eventName = s:getEventType(l:item)
+
+  if(has_key(s:callbacks, l:eventName))
+    let Callback = function(s:callbacks[l:eventName], [l:item])
+    call Callback()
+  endif
+endfunction
+
+function! tsuquyomi#tsClient#clearCallbacks()
+  let s:callbacks = {}
+endfunction
+
+function! tsuquyomi#tsClient#registerCallback(callback, eventName)
+  let s:callbacks[a:eventName] = a:callback
+endfunction
+
+function! tsuquyomi#tsClient#sendAsyncRequest(line)
+  if s:is_vim8 && g:tsuquyomi_use_vimproc == 0
+    call tsuquyomi#tsClient#startTss()
+    call ch_sendraw(s:tsq['channel'], a:line . "\n")
+  endif
 endfunction
 
 "
@@ -144,7 +253,7 @@ endfunction
 " PARAM: {float} delay Wait time(sec) after request, until response.
 " PARAM: {int} retry_count Retry count.
 " PARAM: {int} response_length The number of JSONs contained by this response.
-" RETURNS: {list<string>} A list of response string (content-type=json).
+" RETURNS: {list<dict>} A list of response.
 function! tsuquyomi#tsClient#sendRequest(line, delay, retry_count, response_length)
   "call s:debugLog('called! '.a:line)
   call tsuquyomi#tsClient#startTss()
@@ -183,15 +292,17 @@ function! tsuquyomi#tsClient#sendRequest(line, delay, retry_count, response_leng
       let l:tmp2 = substitute(l:tmp1, '\r', '', 'g')
       let l:res_list = split(l:tmp2, '\n\+')
       for res_item in l:res_list
-        let l:check = 0
-        for ignore_reg in s:ignore_respons_conditions
-          let l:check = l:check || (res_item =~ ignore_reg)
-          if l:check
+        let l:to_be_ignored = 0
+        for ignore_reg in s:ignore_response_conditions + ['"type":"event","event":"requestCompleted"']
+          let l:to_be_ignored = l:to_be_ignored || (res_item =~ ignore_reg)
+          if l:to_be_ignored
             break
           endif
         endfor
-        if !l:check
-          call add(response_list, res_item)
+        let l:decoded_res_item = s:JSON.decode(res_item)
+        let l:to_be_ignored = l:to_be_ignored || (has_key(l:decoded_res_item, 'request_seq') && l:decoded_res_item.request_seq != s:request_seq)
+        if !l:to_be_ignored
+          call add(response_list, decoded_res_item)
         endif
       endfor
     else
@@ -218,12 +329,11 @@ function! tsuquyomi#tsClient#sendCommandSyncResponse(cmd, args)
   call tsuquyomi#perfLogger#record('afterCmd:'.a:cmd)
   let l:length = len(l:stdout_list)
   if l:length == 1
-    let res = s:JSON.decode(l:stdout_list[0])
     "if res.success == 0
     "  echom '[Tsuquyomi] TSServer command fail. command: '.res.command.', message: '.res.message
     "endif
     call tsuquyomi#perfLogger#record('afterDecode:'.a:cmd)
-    return [res]
+    return l:stdout_list
   else
     return []
   endif
@@ -236,10 +346,9 @@ function! tsuquyomi#tsClient#sendCommandSyncEvents(cmd, args, delay, length)
   let l:length = len(l:stdout_list)
   let l:result_list = []
   if l:length > 0
-    for out_str in l:stdout_list
-      let res = s:JSON.decode(out_str)
+    for res in l:stdout_list
       if res.type != 'event'
-        "echom '[Tsuquyomi] TSServer return invalid response: '.out_str
+        "echom '[Tsuquyomi] TSServer return invalid response: '.string(res)
       else
         call add(l:result_list, res)
       endif
@@ -279,6 +388,17 @@ function! tsuquyomi#tsClient#getResponseBodyAsDict(responses)
   else
     return {}
   endif
+endfunction
+
+"
+" Send a command to TSServer.
+" This function is called asynchronously.
+" PARAM: {string} cmd Command type. e.g. 'completion', etc...
+" PARAM: {dictionary} args Arguments object. e.g. {'file': 'myApp.ts'}.
+function! tsuquyomi#tsClient#sendCommandAsyncEvents(cmd, args)
+  let l:input = json_encode({'command': a:cmd, 'arguments': a:args, 'type': 'request', 'seq': s:request_seq})
+  " call tsuquyomi#perfLogger#record('beforeCmd:'.a:cmd)
+  call tsuquyomi#tsClient#sendAsyncRequest(l:input)
 endfunction
 
 "
@@ -335,7 +455,7 @@ endfunction
 " Param: {int} offset The col number of starting point of range to change.
 " Param: {int} endLine The line number of end point of range to change.
 " Param: {int} endOffset The col number of end point of range to change.
-" Param: {string} insertString String after replacing 
+" Param: {string} insertString String after replacing
 " This command does not return any response.
 function! tsuquyomi#tsClient#tsChange(file, line, offset, endLine, endOffset, insertString)
   let l:args = {'file': a:file, 'line': a:line, 'offset': a:offset, 'endLine': a:endLine, 'endOffset': a:endOffset, 'insertString': a:insertString}
@@ -419,7 +539,7 @@ endfunction
 " PARAM: {int} line The line number of location to complete.
 " PARAM: {int} offset The col number of location to complete.
 " RETURNS: {list<dict>} A list of dictionaries of definition location.
-"   e.g. : 
+"   e.g. :
 "     [{'file': 'hogehoge.ts', 'start': {'line': 3, 'offset': 2}, 'end': {'line': 3, 'offset': 10}}]
 function! tsuquyomi#tsClient#tsDefinition(file, line, offset)
   let l:args = {'file': a:file, 'line': a:line, 'offset': a:offset}
@@ -517,7 +637,7 @@ endfunction
 " PARAM: {string} file File name.
 " PARAM: {int} line The line number of the symbol's position.
 " PARAM: {int} offset The col number of the symbol's position.
-" RETURNS:  {dict}  
+" RETURNS:  {dict}
 "   e.g. :
 "     {
 "       'kind': 'method',
@@ -543,11 +663,11 @@ endfunction
 "       'symbolDisplayString': 'SomeModule.SomeClass',
 "       'refs': [
 "         {
-"           'file': 'SomeClass.ts', 'isWriteAccess': 1, 
+"           'file': 'SomeClass.ts', 'isWriteAccess': 1,
 "           'start': {'line': 3', 'offset': 2}, 'end': {'line': 3, 'offset': 20},
 "           'lineText': 'export class SomeClass {'
 "         }, {
-"           'file': 'OtherClass.ts', 'isWriteAccess': 0, 
+"           'file': 'OtherClass.ts', 'isWriteAccess': 0,
 "           'start': {'line': 5', 'offset': 2}, 'end': {'line': 5, 'offset': 20},
 "           'lineText': 'export class OtherClass extends SomeClass{'
 "         }
@@ -561,9 +681,9 @@ endfunction
 
 " Reload an opend file.
 " It can be used for telling change of buffer to TSServer.
-" PARAM: {string} file File name 
+" PARAM: {string} file File name
 " PARAM: {string} tmpfile
-" RETURNS: {0|1} 
+" RETURNS: {0|1}
 function! tsuquyomi#tsClient#tsReload(file, tmpfile)
   let l:arg = {'file': a:file, 'tmpfile': a:tmpfile}
   " With ts > 2.6 and ts <=1.9, tsserver emit 2 responses by reload request.
@@ -607,7 +727,7 @@ endfunction
 "         },
 "       },
 "       'locs': [{
-"         'file': 'hoge.ts'', 
+"         'file': 'hoge.ts'',
 "         'locs': [
 "           {'start':{'line': 3, 'offset': 4}, 'end':{'line': 3, 'offset': 12}},
 "           ...
@@ -662,7 +782,7 @@ endfunction
 " PARAM: {string} file File name.
 " PARAM: {int} line The line number of the symbol's position.
 " PARAM: {int} offset The col number of the symbol's position.
-" RETURNS:  {dict}  
+" RETURNS:  {dict}
 "   e.g. :
 "     {
 "       'selectedItemIndex': 0,
@@ -721,7 +841,7 @@ endfunction
 " PARAM: {int} line The line number of location to complete.
 " PARAM: {int} offset The col number of location to complete.
 " RETURNS: {list<dict>} A list of dictionaries of type definition location.
-"   e.g. : 
+"   e.g. :
 "     [{'file': 'hogehoge.ts', 'start': {'line': 3, 'offset': 2}, 'end': {'line': 3, 'offset': 10}}]
 function! tsuquyomi#tsClient#tsTypeDefinition(file, line, offset)
   let l:args = {'file': a:file, 'line': a:line, 'offset': a:offset}
@@ -777,9 +897,38 @@ endfunction
 " This command is available only at tsserver ~v.2.1
 function! tsuquyomi#tsClient#tsGetSupportedCodeFixes()
   let l:result = tsuquyomi#tsClient#sendCommandSyncResponse('getSupportedCodeFixes', {})
-  return tsuquyomi#tsClient#getResponseBodyAsDict(l:result)
+  let l:body = tsuquyomi#tsClient#getResponseBodyAsDict(l:result)
+  if (type(l:body) != v:t_list)
+    return []
+  else
+    return l:body
+  endif
 endfunction
 
+"
+" Emmit to change file to TSServer.
+" Param: {string} file File name to change.
+" Param: {int} line The line number of starting point of range to change.
+" Param: {int} offset The col number of starting point of range to change.
+" Param: {int} endLine The line number of end point of range to change.
+" Param: {int} endOffset The col number of end point of range to change.
+" Param: {string} insertString String after replacing
+" This command does not return any response.
+function! tsuquyomi#tsClient#tsAsyncChange(file, line, offset, endLine, endOffset, insertString)
+  let l:args = {'file': a:file, 'line': a:line, 'offset': a:offset, 'endLine': a:endLine, 'endOffset': a:endOffset, 'insertString': a:insertString}
+  call tsuquyomi#tsClient#sendCommandAsyncEvents('change', l:args)
+endfunction
+
+"
+" Get error for files.
+" PARAM: {list<string>} files List of filename
+" PARAM: {int} delay Delay time [msec].
+function! tsuquyomi#tsClient#tsAsyncGeterr(files, delay)
+  let l:args = {'files': a:files, 'delay': a:delay}
+  let l:delaySec = a:delay * 1.0 / 1000.0
+  let l:typeCount = tsuquyomi#config#isHigher(280) ? 3 : 2
+  call tsuquyomi#tsClient#sendCommandAsyncEvents('geterr', l:args)
+endfunction
 
 " ### TSServer command wrappers }}}
 

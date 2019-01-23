@@ -18,6 +18,22 @@ if !has_key(s:, 'executable_cache_map')
     let s:executable_cache_map = {}
 endif
 
+
+function! ale#engine#CleanupEveryBuffer() abort
+    for l:key in keys(g:ale_buffer_info)
+        " The key could be a filename or a buffer number, so try and
+        " convert it to a number. We need a number for the other
+        " functions.
+        let l:buffer = str2nr(l:key)
+
+        if l:buffer > 0
+            " Stop all jobs and clear the results for everything, and delete
+            " all of the data we stored for the buffer.
+            call ale#engine#Cleanup(l:buffer)
+        endif
+    endfor
+endfunction
+
 function! ale#engine#ResetExecutableCache() abort
     let s:executable_cache_map = {}
 endfunction
@@ -63,6 +79,7 @@ function! ale#engine#InitBufferInfo(buffer) abort
         let g:ale_buffer_info[a:buffer] = {
         \   'job_list': [],
         \   'active_linter_list': [],
+        \   'active_other_sources_list': [],
         \   'loclist': [],
         \   'temporary_file_list': [],
         \   'temporary_directory_list': [],
@@ -81,6 +98,7 @@ function! ale#engine#IsCheckingBuffer(buffer) abort
     let l:info = get(g:ale_buffer_info, a:buffer, {})
 
     return !empty(get(l:info, 'active_linter_list', []))
+    \   || !empty(get(l:info, 'active_other_sources_list', []))
 endfunction
 
 " Register a temporary file to be managed with the ALE engine for
@@ -161,20 +179,27 @@ function! s:GatherOutput(job_id, line) abort
     endif
 endfunction
 
-function! ale#engine#HandleLoclist(linter_name, buffer, loclist) abort
+function! ale#engine#HandleLoclist(linter_name, buffer, loclist, from_other_source) abort
     let l:info = get(g:ale_buffer_info, a:buffer, {})
 
     if empty(l:info)
         return
     endif
 
-    " Remove this linter from the list of active linters.
-    " This may have already been done when the job exits.
-    call filter(l:info.active_linter_list, 'v:val isnot# a:linter_name')
+    if !a:from_other_source
+        " Remove this linter from the list of active linters.
+        " This may have already been done when the job exits.
+        call filter(l:info.active_linter_list, 'v:val isnot# a:linter_name')
+    endif
 
     " Make some adjustments to the loclists to fix common problems, and also
     " to set default values for loclist items.
-    let l:linter_loclist = ale#engine#FixLocList(a:buffer, a:linter_name, a:loclist)
+    let l:linter_loclist = ale#engine#FixLocList(
+    \   a:buffer,
+    \   a:linter_name,
+    \   a:from_other_source,
+    \   a:loclist,
+    \)
 
     " Remove previous items for this linter.
     call filter(l:info.loclist, 'v:val.linter_name isnot# a:linter_name')
@@ -247,7 +272,7 @@ function! s:HandleExit(job_id, exit_code) abort
         let l:loclist = []
     endtry
 
-    call ale#engine#HandleLoclist(l:linter.name, l:buffer, l:loclist)
+    call ale#engine#HandleLoclist(l:linter.name, l:buffer, l:loclist, 0)
 endfunction
 
 function! ale#engine#SetResults(buffer, loclist) abort
@@ -277,6 +302,12 @@ function! ale#engine#SetResults(buffer, loclist) abort
             " Try and echo the warning now.
             " This will only do something meaningful if we're in normal mode.
             call ale#cursor#EchoCursorWarning()
+        endif
+
+        if g:ale_virtualtext_cursor
+            " Try and show the warning now.
+            " This will only do something meaningful if we're in normal mode.
+            call ale#virtualtext#ShowCursorWarning()
         endif
 
         " Reset the save event marker, used for opening windows, etc.
@@ -319,7 +350,7 @@ function! s:RemapItemTypes(type_map, loclist) abort
     endfor
 endfunction
 
-function! ale#engine#FixLocList(buffer, linter_name, loclist) abort
+function! ale#engine#FixLocList(buffer, linter_name, from_other_source, loclist) abort
     let l:bufnr_map = {}
     let l:new_loclist = []
 
@@ -351,6 +382,10 @@ function! ale#engine#FixLocList(buffer, linter_name, loclist) abort
         \   'nr': get(l:old_item, 'nr', -1),
         \   'linter_name': a:linter_name,
         \}
+
+        if a:from_other_source
+            let l:item.from_other_source = 1
+        endif
 
         if has_key(l:old_item, 'code')
             let l:item.code = l:old_item.code
@@ -477,27 +512,18 @@ function! s:RunJob(options) abort
     let l:read_buffer = a:options.read_buffer
     let l:info = g:ale_buffer_info[l:buffer]
 
-    let [l:temporary_file, l:command] = ale#command#FormatCommand(
+    let [l:temporary_file, l:command, l:file_created] = ale#command#FormatCommand(
     \   l:buffer,
     \   l:executable,
     \   l:command,
     \   l:read_buffer,
+    \   function('s:CreateTemporaryFileForJob'),
     \)
 
-    if s:CreateTemporaryFileForJob(l:buffer, l:temporary_file)
+    if l:file_created
         " If a temporary filename has been formatted in to the command, then
         " we do not need to send the Vim buffer to the command.
         let l:read_buffer = 0
-    endif
-
-    " Add a newline to commands which need it.
-    " This is only used for Flow for now, and is not documented.
-    if l:linter.add_newline
-        if has('win32')
-            let l:command = l:command . '; echo.'
-        else
-            let l:command = l:command . '; echo'
-        endif
     endif
 
     let l:command = ale#job#PrepareCommand(l:buffer, l:command)
@@ -675,6 +701,7 @@ endfunction
 function! s:RemoveProblemsForDisabledLinters(buffer, linters) abort
     " Figure out which linters are still enabled, and remove
     " problems for linters which are no longer enabled.
+    " Problems from other sources will be kept.
     let l:name_map = {}
 
     for l:linter in a:linters
@@ -683,7 +710,7 @@ function! s:RemoveProblemsForDisabledLinters(buffer, linters) abort
 
     call filter(
     \   get(g:ale_buffer_info[a:buffer], 'loclist', []),
-    \   'get(l:name_map, get(v:val, ''linter_name''))',
+    \   'get(v:val, ''from_other_source'') || get(l:name_map, get(v:val, ''linter_name''))',
     \)
 endfunction
 

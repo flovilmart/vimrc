@@ -38,7 +38,7 @@ function! s:HandleLSPDiagnostics(conn_id, response) abort
 
     let l:loclist = ale#lsp#response#ReadDiagnostics(a:response)
 
-    call ale#engine#HandleLoclist(l:linter_name, l:buffer, l:loclist)
+    call ale#engine#HandleLoclist(l:linter_name, l:buffer, l:loclist, 0)
 endfunction
 
 function! s:HandleTSServerDiagnostics(response, error_type) abort
@@ -55,20 +55,33 @@ function! s:HandleTSServerDiagnostics(response, error_type) abort
     endif
 
     let l:thislist = ale#lsp#response#ReadTSServerDiagnostics(a:response)
+    let l:no_changes = 0
 
     " tsserver sends syntax and semantic errors in separate messages, so we
     " have to collect the messages separately for each buffer and join them
     " back together again.
     if a:error_type is# 'syntax'
+        if len(l:thislist) is 0 && len(get(l:info, 'syntax_loclist', [])) is 0
+            let l:no_changes = 1
+        endif
+
         let l:info.syntax_loclist = l:thislist
     else
+        if len(l:thislist) is 0 && len(get(l:info, 'semantic_loclist', [])) is 0
+            let l:no_changes = 1
+        endif
+
         let l:info.semantic_loclist = l:thislist
+    endif
+
+    if l:no_changes
+        return
     endif
 
     let l:loclist = get(l:info, 'semantic_loclist', [])
     \   + get(l:info, 'syntax_loclist', [])
 
-    call ale#engine#HandleLoclist(l:linter_name, l:buffer, l:loclist)
+    call ale#engine#HandleLoclist(l:linter_name, l:buffer, l:loclist, 0)
 endfunction
 
 function! s:HandleLSPErrorMessage(linter_name, response) abort
@@ -99,9 +112,10 @@ endfunction
 
 function! ale#lsp_linter#HandleLSPResponse(conn_id, response) abort
     let l:method = get(a:response, 'method', '')
-    let l:linter_name = get(s:lsp_linter_map, a:conn_id, '')
 
     if get(a:response, 'jsonrpc', '') is# '2.0' && has_key(a:response, 'error')
+        let l:linter_name = get(s:lsp_linter_map, a:conn_id, '')
+
         call s:HandleLSPErrorMessage(l:linter_name, a:response)
     elseif l:method is# 'textDocument/publishDiagnostics'
         call s:HandleLSPDiagnostics(a:conn_id, a:response)
@@ -124,6 +138,18 @@ function! ale#lsp_linter#GetOptions(buffer, linter) abort
     endif
 
     return l:initialization_options
+endfunction
+
+function! ale#lsp_linter#GetConfig(buffer, linter) abort
+    let l:config = {}
+
+    if has_key(a:linter, 'lsp_config_callback')
+        let l:config = ale#util#GetFunction(a:linter.lsp_config_callback)(a:buffer)
+    elseif has_key(a:linter, 'lsp_config')
+        let l:config = a:linter.lsp_config
+    endif
+
+    return l:config
 endfunction
 
 " Given a buffer, an LSP linter, start up an LSP linter and get ready to
@@ -156,7 +182,7 @@ function! ale#lsp_linter#StartLSP(buffer, linter) abort
 
         let l:command = ale#linter#GetCommand(a:buffer, a:linter)
         " Format the command, so %e can be formatted into it.
-        let l:command = ale#command#FormatCommand(a:buffer, l:executable, l:command, 0)[1]
+        let l:command = ale#command#FormatCommand(a:buffer, l:executable, l:command, 0, {-> 0})[1]
         let l:command = ale#job#PrepareCommand(a:buffer, l:command)
         let l:ready = ale#lsp#StartProgram(l:conn_id, l:executable, l:command)
     endif
@@ -174,6 +200,7 @@ function! ale#lsp_linter#StartLSP(buffer, linter) abort
         call ale#lsp#MarkConnectionAsTsserver(l:conn_id)
     endif
 
+    let l:config = ale#lsp_linter#GetConfig(a:buffer, a:linter)
     let l:language_id = ale#util#GetFunction(a:linter.language_callback)(a:buffer)
 
     let l:details = {
@@ -183,6 +210,8 @@ function! ale#lsp_linter#StartLSP(buffer, linter) abort
     \   'project_root': l:root,
     \   'language_id': l:language_id,
     \}
+
+    call ale#lsp#UpdateConfig(l:conn_id, a:buffer, l:config)
 
     if ale#lsp#OpenDocument(l:conn_id, a:buffer, l:language_id)
         if g:ale_history_enabled && !empty(l:command)

@@ -112,6 +112,9 @@ let g:ale_echo_cursor = get(g:, 'ale_echo_cursor', 1)
 " This flag can be set to 1 to automatically show errors in the preview window.
 let g:ale_cursor_detail = get(g:, 'ale_cursor_detail', 0)
 
+" This flag can be set to 1 to enable virtual text when the cursor moves.
+let g:ale_virtualtext_cursor = get(g:, 'ale_virtualtext_cursor', 0)
+
 " This flag can be set to 1 to automatically close the preview window upon
 " entering Insert Mode.
 let g:ale_close_preview_on_insert = get(g:, 'ale_close_preview_on_insert', 0)
@@ -132,6 +135,9 @@ let g:ale_history_log_output = get(g:, 'ale_history_log_output', 1)
 
 " Enable automatic completion with LSP servers and tsserver
 let g:ale_completion_enabled = get(g:, 'ale_completion_enabled', 0)
+
+" Enable automatic detection of pipenv for Python linters.
+let g:ale_python_auto_pipenv = get(g:, 'ale_python_auto_pipenv', 0)
 
 if g:ale_set_balloons
     call ale#balloon#Enable()
@@ -182,14 +188,29 @@ command! -bar ALEFixSuggest :call ale#fix#registry#Suggest(&filetype)
 
 " Go to definition for tsserver and LSP
 command! -bar ALEGoToDefinition :call ale#definition#GoTo({})
-command! -bar ALEGoToDefinitionInTab :call ale#definition#GoTo({'open_in_tab': 1})
+command! -bar ALEGoToDefinitionInTab :call ale#definition#GoTo({'open_in': 'tab'})
+command! -bar ALEGoToDefinitionInSplit :call ale#definition#GoTo({'open_in': 'horizontal-split'})
+command! -bar ALEGoToDefinitionInVSplit :call ale#definition#GoTo({'open_in': 'vertical-split'})
+
+" Go to type definition for tsserver and LSP
+command! -bar ALEGoToTypeDefinition :call ale#definition#GoToType({})
+command! -bar ALEGoToTypeDefinitionInTab :call ale#definition#GoToType({'open_in': 'tab'})
+command! -bar ALEGoToTypeDefinitionInSplit :call ale#definition#GoToType({'open_in': 'horizontal-split'})
+command! -bar ALEGoToTypeDefinitionInVSplit :call ale#definition#GoToType({'open_in': 'vertical-split'})
 
 " Find references for tsserver and LSP
 command! -bar ALEFindReferences :call ale#references#Find()
 
-" Get information for the cursor.
-command! -bar ALEHover :call ale#hover#Show(bufnr(''), getcurpos()[1],
-                                            \ getcurpos()[2], {})
+" Show summary information for the cursor.
+command! -bar ALEHover :call ale#hover#ShowAtCursor()
+
+" Show documentation for the cursor.
+command! -bar ALEDocumentation :call ale#hover#ShowDocumentationAtCursor()
+
+" Search for appearances of a symbol, such as a type name or function name.
+command! -nargs=1 ALESymbolSearch :call ale#symbol#Search(<q-args>)
+
+command! -bar ALEComplete :call ale#completion#AlwaysGetCompletions(0)
 
 " <Plug> mappings for commands
 nnoremap <silent> <Plug>(ale_previous) :ALEPrevious<Return>
@@ -211,8 +232,16 @@ nnoremap <silent> <Plug>(ale_detail) :ALEDetail<Return>
 nnoremap <silent> <Plug>(ale_fix) :ALEFix<Return>
 nnoremap <silent> <Plug>(ale_go_to_definition) :ALEGoToDefinition<Return>
 nnoremap <silent> <Plug>(ale_go_to_definition_in_tab) :ALEGoToDefinitionInTab<Return>
+nnoremap <silent> <Plug>(ale_go_to_definition_in_split) :ALEGoToDefinitionInSplit<Return>
+nnoremap <silent> <Plug>(ale_go_to_definition_in_vsplit) :ALEGoToDefinitionInVSplit<Return>
+nnoremap <silent> <Plug>(ale_go_to_type_definition) :ALEGoToTypeDefinition<Return>
+nnoremap <silent> <Plug>(ale_go_to_type_definition_in_tab) :ALEGoToTypeDefinitionInTab<Return>
+nnoremap <silent> <Plug>(ale_go_to_type_definition_in_split) :ALEGoToTypeDefinitionInSplit<Return>
+nnoremap <silent> <Plug>(ale_go_to_type_definition_in_vsplit) :ALEGoToTypeDefinitionInVSplit<Return>
 nnoremap <silent> <Plug>(ale_find_references) :ALEFindReferences<Return>
 nnoremap <silent> <Plug>(ale_hover) :ALEHover<Return>
+nnoremap <silent> <Plug>(ale_documentation) :ALEDocumentation<Return>
+inoremap <silent> <Plug>(ale_complete) <C-\><C-O>:ALEComplete<Return>
 
 " Set up autocmd groups now.
 call ale#events#Init()
@@ -224,4 +253,8 @@ augroup ALECleanupGroup
     " Clean up buffers automatically when they are unloaded.
     autocmd BufDelete * if exists('*ale#engine#Cleanup') | call ale#engine#Cleanup(str2nr(expand('<abuf>'))) | endif
     autocmd QuitPre * call ale#events#QuitEvent(str2nr(expand('<abuf>')))
+
+    if exists('##VimSuspend')
+      autocmd VimSuspend * if exists('*ale#engine#CleanupEveryBuffer') | call ale#engine#CleanupEveryBuffer() | endif
+    endif
 augroup END

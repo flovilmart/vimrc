@@ -30,7 +30,14 @@ function! ale#fix#ApplyQueuedFixes() abort
             call winrestview(l:save)
         endif
 
-        call setline(1, l:data.output)
+        " If the file is in DOS mode, we have to remove carriage returns from
+        " the ends of lines before calling setline(), or we will see them
+        " twice.
+        let l:lines_to_set = getbufvar(l:buffer, '&fileformat') is# 'dos'
+        \   ? map(copy(l:data.output), 'substitute(v:val, ''\r\+$'', '''', '''')')
+        \   : l:data.output
+
+        call setline(1, l:lines_to_set)
 
         if l:data.should_save
             if empty(&buftype)
@@ -165,7 +172,7 @@ function! ale#fix#RemoveManagedFiles(buffer) abort
     let g:ale_fix_buffer_data[a:buffer].temporary_directory_list = []
 endfunction
 
-function! s:CreateTemporaryFileForJob(buffer, temporary_file, input) abort
+function! s:CreateTemporaryFileForJob(input, buffer, temporary_file) abort
     if empty(a:temporary_file)
         " There is no file, so we didn't create anything.
         return 0
@@ -211,13 +218,13 @@ function! s:RunJob(options) abort
         return 1
     endif
 
-    let [l:temporary_file, l:command] = ale#command#FormatCommand(
+    let [l:temporary_file, l:command, l:file_created] = ale#command#FormatCommand(
     \   l:buffer,
     \   '',
     \   l:command,
     \   l:read_buffer,
+    \   function('s:CreateTemporaryFileForJob', [l:input]),
     \)
-    call s:CreateTemporaryFileForJob(l:buffer, l:temporary_file, l:input)
 
     let l:command = ale#job#PrepareCommand(l:buffer, l:command)
     let l:job_options = {
@@ -308,10 +315,10 @@ function! s:RunFixer(options) abort
             \   ? call(l:Function, [l:buffer, a:options.output])
             \   : call(l:Function, [l:buffer, a:options.output, copy(l:input)])
         else
-            " Chained commands accept (buffer, [input])
+            " Chained commands accept (buffer, [done, input])
             let l:result = ale#util#FunctionArgCount(l:Function) == 1
             \   ? call(l:Function, [l:buffer])
-            \   : call(l:Function, [l:buffer, copy(l:input)])
+            \   : call(l:Function, [l:buffer, v:null, copy(l:input)])
         endif
 
         if type(l:result) is v:t_number && l:result == 0

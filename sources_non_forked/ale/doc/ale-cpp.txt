@@ -103,7 +103,7 @@ overrides |g:ale_c_build_dir_names|.
 g:ale_cpp_clangtidy_checks                         *g:ale_cpp_clangtidy_checks*
                                                    *b:ale_cpp_clangtidy_checks*
   Type: |List|
-  Default: `['*']`
+  Default: `[]`
 
   The checks to enable for clang-tidy with the `-checks` argument.
 
@@ -277,6 +277,37 @@ g:ale_cpp_gcc_options                                   *g:ale_cpp_gcc_options*
 uncrustify                                                 *ale-cpp-uncrustify*
 
 See |ale-c-uncrustify| for information about the available options.
+
+
+===============================================================================
+ccls                                                             *ale-cpp-ccls*
+
+g:ale_cpp_ccls_executable                           *g:ale_cpp_ccls_executable*
+                                                    *b:ale_cpp_ccls_executable*
+  Type: |String|
+  Default: `'ccls'`
+
+  This variable can be changed to use a different executable for ccls.
+
+
+g:ale_cpp_ccls_init_options                       *g:ale_cpp_ccls_init_options*
+                                                  *b:ale_cpp_ccls_init_options*
+  Type: |Dictionary|
+  Default: `{}`
+
+  This variable can be changed to customize ccls initialization options.
+  Example: >
+      {
+    \   'cacheDirectory': '/tmp/ccls',
+    \   'cacheFormat': 'binary',
+    \   'diagnostics': {
+    \     'onOpen': 0,
+    \     'opChange': 1000,
+    \   },
+    \ }
+<
+  Visit https://github.com/MaskRay/ccls/wiki/Initialization-options for all
+  available options and explanations.
 
 
 ===============================================================================

@@ -33,7 +33,7 @@ function! ale#lsp#response#ReadDiagnostics(response) abort
         \   'lnum': l:diagnostic.range.start.line + 1,
         \   'col': l:diagnostic.range.start.character + 1,
         \   'end_lnum': l:diagnostic.range.end.line + 1,
-        \   'end_col': l:diagnostic.range.end.character + 1,
+        \   'end_col': l:diagnostic.range.end.character,
         \}
 
         if l:severity == s:SEVERITY_WARNING
@@ -64,6 +64,10 @@ function! ale#lsp#response#ReadDiagnostics(response) abort
                 \ ":\n\t" . val.message
                 \ })
             let l:loclist_item.detail = l:diagnostic.message . "\n" . join(l:related, "\n")
+        endif
+
+        if has_key(l:diagnostic, 'source')
+           let l:loclist_item.detail = printf('[%s] %s', l:diagnostic.source, l:diagnostic.message)
         endif
 
         call add(l:loclist, l:loclist_item)
