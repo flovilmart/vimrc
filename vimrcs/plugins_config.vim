@@ -98,6 +98,7 @@ map <leader>nb :NERDTreeFromBookmark<Space>
 let g:nerdtree_tabs_open_on_console_startup=1
 map <leader>nf :NERDTreeTabsFind<cr>
 
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => vim-multiple-cursors
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -192,5 +193,7 @@ map <C-]> :ALEGoToDefinition<cr>
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Git gutter (Git diff)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:gitgutter_enabled=0
+let g:gitgutter_enabled=1
+set updatetime=100
+
 nnoremap <silent> <leader>d :GitGutterToggle<cr>
