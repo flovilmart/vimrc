@@ -48,6 +48,7 @@ nmap <Leader>o :Files<CR>
 nmap <Leader>r :Tags<CR>
 
 nmap <Leader>a :Ag <CR>
+nmap <Leader>f :Ag<CR>
 nmap <M-k>    :Ack! "\b<cword>\b" <CR>
 nmap <Esc>k   :Ack! "\b<cword>\b" <CR>
 nmap <M-S-k>  :Ggrep! "\b<cword>\b" <CR>
