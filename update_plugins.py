@@ -14,7 +14,7 @@ import requests
 from os import path
 
 
-#--- Globals ----------------------------------------------
+# --- Globals ----------------------------------------------
 PLUGINS = """
 auto-pairs https://github.com/jiangmiao/auto-pairs
 ale https://github.com/w0rp/ale
@@ -57,14 +57,15 @@ vim-nerdtree-tabs https://github.com/jistr/vim-nerdtree-tabs
 typescript-vim https://github.com/leafgarland/typescript-vim
 tsuquyomi https://github.com/Quramy/tsuquyomi
 javascript-typescript-langserver https://github.com/sourcegraph/javascript-typescript-langserver
+LanguageClient-neovim https://github.com/autozimu/LanguageClient-neovim#next
 """.strip()
 
-GITHUB_ZIP = '%s/archive/master.zip'
+GITHUB_ZIP = '%s/archive/%s.zip'
 
 SOURCE_DIR = path.join(path.dirname(__file__), 'sources_non_forked')
 
 
-def download_extract_replace(plugin_name, zip_path, temp_dir, source_dir):
+def download_extract_replace(plugin_name, branch, zip_path, temp_dir, source_dir):
     temp_zip_path = path.join(temp_dir, plugin_name)
 
     # Download and extract file in temp dir
@@ -74,8 +75,8 @@ def download_extract_replace(plugin_name, zip_path, temp_dir, source_dir):
     zip_f = zipfile.ZipFile(temp_zip_path)
     zip_f.extractall(temp_dir)
 
-    plugin_temp_path = path.join(temp_dir,
-                                 path.join(temp_dir, '%s-master' % plugin_name))
+    temp_dir_path = path.join(temp_dir, '%s-%s' % (plugin_name, branch))
+    plugin_temp_path = path.join(temp_dir, temp_dir_path)
 
     # Remove the current plugin and replace it with the extracted
     plugin_dest_path = path.join(source_dir, plugin_name)
@@ -86,13 +87,17 @@ def download_extract_replace(plugin_name, zip_path, temp_dir, source_dir):
         pass
 
     shutil.move(plugin_temp_path, plugin_dest_path)
-    print('Updated {0}'.format(plugin_name))
+    print('Updated %s %s' % (plugin_name, branch))
 
 
 def update(plugin):
     name, github_url = plugin.split(' ')
-    zip_path = GITHUB_ZIP % github_url
-    download_extract_replace(name, zip_path,
+    try:
+        github_url, branch = github_url.split('#')
+    except:
+        branch = 'master'
+    zip_path = GITHUB_ZIP % (github_url, branch)
+    download_extract_replace(name, branch, zip_path,
                              temp_directory, SOURCE_DIR)
 
 
