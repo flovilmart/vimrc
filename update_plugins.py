@@ -24,7 +24,6 @@ fzf.vim https://github.com/junegunn/fzf.vim
 nerdtree https://github.com/scrooloose/nerdtree
 nginx.vim https://github.com/chr4/nginx.vim
 open_file_under_cursor.vim https://github.com/amix/open_file_under_cursor.vim
-snipmate-snippets https://github.com/scrooloose/snipmate-snippets
 vim-bundle-mako https://github.com/sophacles/vim-bundle-mako
 vim-coffee-script https://github.com/kchmck/vim-coffee-script
 vim-colors-solarized https://github.com/altercation/vim-colors-solarized
@@ -56,7 +55,6 @@ vim-devicons https://github.com/ryanoasis/vim-devicons
 vim-nerdtree-tabs https://github.com/jistr/vim-nerdtree-tabs
 typescript-vim https://github.com/leafgarland/typescript-vim
 tsuquyomi https://github.com/Quramy/tsuquyomi
-javascript-typescript-langserver https://github.com/sourcegraph/javascript-typescript-langserver
 LanguageClient-neovim https://github.com/autozimu/LanguageClient-neovim#next
 """.strip()
 

@@ -4,6 +4,7 @@
 "
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+set runtimepath+=~/.vim-plugins/LanguageClient-neovim
 
 """"""""""""""""""""""""""""""
 " => Load pathogen paths
@@ -53,6 +54,21 @@ nmap <M-k>    :Ack! "\b<cword>\b" <CR>
 nmap <Esc>k   :Ack! "\b<cword>\b" <CR>
 nmap <M-S-k>  :Ggrep! "\b<cword>\b" <CR>
 nmap <Esc>K   :Ggrep! "\b<cword>\b" <CR>
+
+""""""""""""""""""""""""""""""
+" => LanguageClient
+""""""""""""""""""""""""""""""
+set hidden
+
+let g:LanguageClient_serverCommands = {
+    \ 'javascript': ['node', '~/.vim_runtime/sources_non_forked/javascript-typescript-langserver/lib/language-server-stdio'],
+    \ }
+
+set completefunc=LanguageClient#complete
+nnoremap <silent> K :call LanguageClient#textDocument_hover()<CR>
+nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+nnoremap <silent> fu :call LanguageClient#textDocument_references()<CR>
+nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
 
 """"""""""""""""""""""""""""""
 " => ZenCoding
