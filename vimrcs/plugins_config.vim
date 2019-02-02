@@ -61,7 +61,7 @@ nmap <Esc>K   :Ggrep! "\b<cword>\b" <CR>
 set hidden
 
 let g:LanguageClient_serverCommands = {
-    \ 'javascript': ['node', '~/.vim_runtime/sources_non_forked/javascript-typescript-langserver/lib/language-server-stdio'],
+    \ 'javascript': ['javascript-typescript-stdio'],
     \ }
 
 set completefunc=LanguageClient#complete
