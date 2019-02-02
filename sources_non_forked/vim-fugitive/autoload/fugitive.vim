@@ -1521,8 +1521,6 @@ function! fugitive#BufReadStatus() abort
 
     set nomodified readonly noswapfile
     silent doautocmd BufReadPost
-    set foldtext=fugitive#Foldtext()
-    set filetype=fugitive
     setlocal nomodifiable
     if &bufhidden ==# ''
       setlocal bufhidden=delete
@@ -1575,6 +1573,7 @@ function! fugitive#BufReadStatus() abort
     nnoremap <buffer> <silent> q    :<C-U>bdelete<CR>
     nnoremap <buffer> <silent> g?   :help fugitive-:Gstatus<CR>
     nnoremap <buffer> <silent> <F1> :help fugitive-:Gstatus<CR>
+    set filetype=fugitive
 
     for [lnum, section] in [[staged_end, 'Staged'], [unstaged_end, 'Unstaged']]
       while len(getline(lnum))
@@ -1910,7 +1909,7 @@ function! s:Status(bang, count, mods) abort
   try
     let mods = a:mods ==# '<mods>' || empty(a:mods) ? '' : a:mods . ' '
     if mods !~# 'aboveleft\|belowright\|leftabove\|rightbelow\|topleft\|botright'
-      let mods = 'topleft ' . mods
+      let mods = (&splitbelow ? 'botright ' : 'topleft ') . mods
     endif
     let file = fugitive#Find(':')
     let arg = ' +setl\ foldmethod=syntax\ foldlevel=1\|let\ w:fugitive_status=FugitiveGitDir() ' .
@@ -2877,7 +2876,7 @@ endfunction
 
 function! s:UsableWin(nr) abort
   return a:nr && !getwinvar(a:nr, '&previewwindow') &&
-        \ (empty(getwinvar(a:nr, 'fugitive_status')) || getwinvar(a:nr, 'fugitive_type') !=# 'index') &&
+        \ (empty(getwinvar(a:nr, 'fugitive_status')) || getbufvar(winbufnr(a:nr), 'fugitive_type') !=# 'index') &&
         \ index(['gitrebase', 'gitcommit'], getbufvar(winbufnr(a:nr), '&filetype')) < 0 &&
         \ index(['nofile','help','quickfix'], getbufvar(winbufnr(a:nr), '&buftype')) < 0
 endfunction
@@ -3550,13 +3549,7 @@ function! s:Blame(bang, line1, line2, count, mods, args) abort
     let cmd += ['--', expand('%:p')]
     let basecmd = escape(fugitive#Prepare(cmd), '!#%')
     try
-      let cd = s:Cd()
-      let tree = s:Tree()
-      let cdback = s:Cd(tree)
-      if len(tree) && s:cpath(tree) !=# s:cpath(getcwd())
-        let cwd = getcwd()
-        execute cd s:fnameescape(tree)
-      endif
+      let cdback = s:Cd(s:Tree())
       let error = tempname()
       let temp = error.'.fugitiveblame'
       if &shell =~# 'csh'
@@ -3564,10 +3557,10 @@ function! s:Blame(bang, line1, line2, count, mods, args) abort
       else
         silent! execute '%write !'.basecmd.' > '.temp.' 2> '.error
       endif
-      if exists('l:cwd')
-        execute cd s:fnameescape(cwd)
-        unlet cwd
-      endif
+    finally
+      execute cdback
+    endtry
+    try
       if v:shell_error
         call s:throw(join(readfile(error),"\n"))
       endif
@@ -3639,10 +3632,6 @@ function! s:Blame(bang, line1, line2, count, mods, args) abort
         nnoremap <buffer> <silent> D    :<C-u>exe "vertical resize ".(<SID>linechars('.\{-\}\ze\d\ze\s\+\d\+)')+1-v:count)<CR>
         redraw
         syncbind
-      endif
-    finally
-      if exists('l:cwd')
-        execute cd s:fnameescape(cwd)
       endif
     endtry
     return ''

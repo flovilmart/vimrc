@@ -56,6 +56,7 @@ vim-devicons https://github.com/ryanoasis/vim-devicons
 vim-nerdtree-tabs https://github.com/jistr/vim-nerdtree-tabs
 typescript-vim https://github.com/leafgarland/typescript-vim
 tsuquyomi https://github.com/Quramy/tsuquyomi
+javascript-typescript-langserver https://github.com/sourcegraph/javascript-typescript-langserver
 """.strip()
 
 GITHUB_ZIP = '%s/archive/master.zip'

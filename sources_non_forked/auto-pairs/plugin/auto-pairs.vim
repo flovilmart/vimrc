@@ -1,7 +1,7 @@
 " Insert or delete brackets, parens, quotes in pairs.
 " Maintainer:	JiangMiao <jiangfriend@gmail.com>
 " Contributor: camthompson
-" Last Change:  2019-01-15
+" Last Change:  2019-02-02
 " Version: 2.0.0
 " Homepage: http://www.vim.org/scripts/script.php?script_id=3599
 " Repository: https://github.com/jiangmiao/auto-pairs
@@ -13,7 +13,7 @@ end
 let g:AutoPairsLoaded = 1
 
 if !exists('g:AutoPairs')
-  let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"', '```':'```', '"""':'"""', "'''":"'''"}
+  let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"', '```':'```', '"""':'"""', "'''":"'''", "`":"`"}
 end
 
 if !exists('g:AutoPairsMapBS')
@@ -410,7 +410,11 @@ func! AutoPairsSpace()
       continue
     end
     if before =~ '\V'.open.'\v$' && after =~ '^\V'.close
-      return "\<SPACE>\<SPACE>".s:Left
+      if close =~ '\v^[''"`]$'
+        return "\<SPACE>"
+      else
+        return "\<SPACE>\<SPACE>".s:Left
+      end
     end
   endfor
   return "\<SPACE>"
