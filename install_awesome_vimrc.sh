@@ -15,4 +15,5 @@ source ~/.vim_runtime/my_configs.vim
 catch
 endtry' > ~/.vimrc
 
+cd sources_non_forked/LanguageClient-neovim && bash install.sh
 echo "Installed the Ultimate Vim configuration successfully! Enjoy :-)"
