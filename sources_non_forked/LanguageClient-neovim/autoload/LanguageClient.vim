@@ -143,6 +143,7 @@ function! s:Bufnames() abort
     return map(filter(range(0,bufnr('$')), 'buflisted(v:val)'), 'fnamemodify(bufname(v:val), '':p'')')
 endfunction
 
+" Clear and set virtual texts between line_start and line_end (exclusive).
 function! s:set_virtual_texts(buf_id, ns_id, line_start, line_end, virtual_texts) abort
     " VirtualText: map with keys line, text and hl_group.
 
@@ -154,6 +155,13 @@ function! s:set_virtual_texts(buf_id, ns_id, line_start, line_end, virtual_texts
 
     for vt in a:virtual_texts
         call nvim_buf_set_virtual_text(a:buf_id, a:ns_id, vt['line'], [[vt['text'], vt['hl_group']]], {})
+    endfor
+endfunction
+
+" Execute serious of ex commands.
+function! s:command(...) abort
+    for l:cmd in a:000
+        execute l:cmd
     endfor
 endfunction
 
@@ -282,15 +290,8 @@ function! s:HandleMessage(job, lines, event) abort
                 let l:method = get(l:message, 'method')
                 let l:params = get(l:message, 'params')
                 try
-                    if l:method ==# 'execute'
-                        for l:cmd in l:params
-                            execute l:cmd
-                        endfor
-                        let l:result = 0
-                    else
-                        let l:params = type(l:params) == s:TYPE.list ? l:params : [l:params]
-                        let l:result = call(l:method, l:params)
-                    endif
+                    let l:params = type(l:params) == s:TYPE.list ? l:params : [l:params]
+                    let l:result = call(l:method, l:params)
                     if l:id isnot v:null
                         call LanguageClient#Write(json_encode({
                                     \ 'jsonrpc': '2.0',
@@ -475,9 +476,11 @@ function! LanguageClient#Call(method, params, callback, ...) abort
     let l:skipAddParams = get(a:000, 0, v:false)
     let l:params = a:params
     if type(a:params) == s:TYPE.dict && !skipAddParams
+        " TODO: put inside context.
         let l:params = extend({
                     \ 'bufnr': bufnr(''),
                     \ 'languageId': &filetype,
+                    \ 'viewport': LSP#viewport(),
                     \ }, l:params)
     endif
     return LanguageClient#Write(json_encode({

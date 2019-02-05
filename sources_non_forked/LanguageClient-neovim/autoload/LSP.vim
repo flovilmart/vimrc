@@ -1,12 +1,17 @@
 function! LSP#filename() abort
-    return expand('%:p')
+    " When executing autocommand, `%` might have already changed.
+    let l:filename = expand('<afile>:p')
+    if !l:filename
+        let l:filename = expand('%:p')
+    endif
+    return l:filename
 endfunction
 
 function! LSP#text(...) abort
     let l:buf = get(a:000, 0, '')
 
     let l:lines = getbufline(l:buf, 1, '$')
-    if l:lines[-1] !=# '' && &fixendofline
+    if len(l:lines) > 0 && l:lines[-1] !=# '' && &fixendofline
         let l:lines += ['']
     endif
     return l:lines
@@ -39,4 +44,11 @@ endfunction
 
 function! LSP#visible_line_end() abort
     return line('w$') - 1
+endfunction
+
+function! LSP#viewport() abort
+    return {
+        \ 'start': LSP#visible_line_start(),
+        \ 'end': LSP#visible_line_end() + 1,
+        \ }
 endfunction
