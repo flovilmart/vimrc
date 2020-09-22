@@ -17,8 +17,9 @@ More recordings at [Updates, screenshots & GIFs](https://github.com/autozimu/Lan
 
 - Non-blocking asynchronous calls.
 - [Sensible completion](https://github.com/autozimu/LanguageClient-neovim/issues/35#issuecomment-288731936).
-  Integrated with [deoplete](https://github.com/Shougo/deoplete.nvim) or
-  [ncm2](https://github.com/ncm2/ncm2). Or with vim built-in `omnifunc`.
+  Integrated well with [deoplete](https://github.com/Shougo/deoplete.nvim) or
+  [ncm2](https://github.com/ncm2/ncm2), or [MUcomplete](https://github.com/lifepillar/vim-mucomplete).
+  Or simply with vim built-in `omnifunc`.
 - [Realtime diagnostics/compiler/lint message.](https://github.com/autozimu/LanguageClient-neovim/issues/35#issuecomment-288732042)
 - [Rename.](https://github.com/autozimu/LanguageClient-neovim/issues/35#issuecomment-288731403)
 - [Hover/Get identifier info.](https://github.com/autozimu/LanguageClient-neovim/issues/35#issuecomment-288731665)
@@ -40,8 +41,6 @@ Plug 'autozimu/LanguageClient-neovim', {
 
 " (Optional) Multi-entry selection UI.
 Plug 'junegunn/fzf'
-
-Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 ```
 
 Example configuration
@@ -55,6 +54,7 @@ let g:LanguageClient_serverCommands = {
     \ 'javascript': ['/usr/local/bin/javascript-typescript-stdio'],
     \ 'javascript.jsx': ['tcp://127.0.0.1:2089'],
     \ 'python': ['/usr/local/bin/pyls'],
+    \ 'ruby': ['~/.rbenv/shims/solargraph', 'stdio'],
     \ }
 
 nnoremap <F5> :call LanguageClient_contextMenu()<CR>
@@ -78,13 +78,21 @@ language services will be available right away. Happy hacking!
 
 # Language Servers
 
-Please see <http://langserver.org> and/or <https://microsoft.github.io/language-server-protocol/implementors/servers/>.
+**Note**, you will also need language server(s) to take advantages of
+this plugin. To find list of language server implementations and how
+to install them, please see <http://langserver.org> and/or
+<https://microsoft.github.io/language-server-protocol/implementors/servers/>.
 
 # Documentation
 
 [`:help LanguageClient`][LanguageClient.txt] for full list of configurations, commands and functions.
 
 [LanguageClient.txt]: doc/LanguageClient.txt
+
+# Changelog
+See [Updates]. Subscribe the issue if you want to receive notifications.
+
+[Updates]: https://github.com/autozimu/LanguageClient-neovim/issues/35
 
 # Contributing
 

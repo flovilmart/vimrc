@@ -1,3 +1,5 @@
+" TODO: make buffer aware.
+
 function! LSP#filename() abort
     " When executing autocommand, `%` might have already changed.
     let l:filename = expand('<afile>:p')
@@ -7,6 +9,10 @@ function! LSP#filename() abort
     return l:filename
 endfunction
 
+" This function will return buffer text as required by LSP.
+"
+" The main difference with getbufline is that it checks fixendofline settings
+" and add extra line at ending if appropriate.
 function! LSP#text(...) abort
     let l:buf = get(a:000, 0, '')
 
@@ -38,12 +44,18 @@ function! LSP#range_end_line() abort
     return getpos("'>")[1]
 endfunction
 
-function! LSP#visible_line_start() abort
-    return line('w0') - 1
+function! LSP#viewport() abort
+    return {
+        \ 'start': line('w0') - 1,
+        \ 'end': line('w$'),
+        \ }
 endfunction
 
-function! LSP#visible_line_end() abort
-    return line('w$') - 1
+function! LSP#position() abort
+	return {
+		\ 'line': LSP#line(),
+		\ 'character': LSP#character(),
+		\ }
 endfunction
 
 function! LSP#viewport() abort

@@ -87,8 +87,13 @@ function! s:Path.changeToDir()
     endif
 
     try
-        execute "cd " . dir
-        call nerdtree#echo("CWD is now: " . getcwd())
+        if g:NERDTreeUseTCD && exists(":tcd") == 2
+            execute "tcd " . dir
+            call nerdtree#echo("Tab's CWD is now: " . getcwd())
+        else
+            execute "cd " . dir
+            call nerdtree#echo("CWD is now: " . getcwd())
+        endif
     catch
         throw "NERDTree.PathChangeError: cannot change CWD to " . dir
     endtry
@@ -380,7 +385,8 @@ endfunction
 function! s:Path.getSortOrderIndex()
     let i = 0
     while i < len(g:NERDTreeSortOrder)
-        if  self.getLastPathComponent(1) =~# g:NERDTreeSortOrder[i]
+        if g:NERDTreeSortOrder[i] !~? '\[\[-\?\(timestamp\|size\|extension\)\]\]' &&
+        \ self.getLastPathComponent(1) =~# g:NERDTreeSortOrder[i]
             return i
         endif
         let i = i + 1
@@ -407,15 +413,26 @@ endfunction
 " FUNCTION: Path.getSortKey() {{{1
 " returns a key used in compare function for sorting
 function! s:Path.getSortKey()
-    let l:ascending = index(g:NERDTreeSortOrder,'[[timestamp]]')
-    let l:descending = index(g:NERDTreeSortOrder,'[[-timestamp]]')
-    if !exists("self._sortKey") || g:NERDTreeSortOrder !=# g:NERDTreeOldSortOrder || l:ascending >= 0 || l:descending >= 0
-        let self._sortKey = [self.getSortOrderIndex()]
+    if !exists("self._sortKey") || g:NERDTreeSortOrder !=# g:NERDTreeOldSortOrder
+        " Look for file metadata tags: [[timestamp]], [[extension]], [[size]]
+        let metadata = []
+        for tag in g:NERDTreeSortOrder
+            if tag =~? '\[\[-\?timestamp\]\]'
+                let metadata += [self.isDirectory ? 0 : getftime(self.str()) * (tag =~ '-' ? -1 : 1)]
+            elseif tag =~? '\[\[-\?size\]\]'
+                let metadata += [self.isDirectory ? 0 : getfsize(self.str()) * (tag =~ '-' ? -1 : 1)]
+            elseif tag =~? '\[\[extension\]\]'
+                let extension = matchstr(self.getLastPathComponent(0), '[^.]\+\.\zs[^.]\+$')
+                let metadata += [self.isDirectory ? '' : (extension == '' ? nr2char(str2nr('0x10ffff',16)) : extension)]
+            endif
+        endfor
 
-        if l:descending >= 0
-            call insert(self._sortKey, -getftime(self.str()), l:descending == 0 ? 0 : len(self._sortKey))
-        elseif l:ascending >= 0
-            call insert(self._sortKey, getftime(self.str()), l:ascending == 0 ? 0 : len(self._sortKey))
+        if g:NERDTreeSortOrder[0] =~ '\[\[.*\]\]'
+            " Apply tags' sorting first if specified first.
+            let self._sortKey = metadata + [self.getSortOrderIndex()]
+        else
+            " Otherwise, do regex grouping first.
+            let self._sortKey = [self.getSortOrderIndex()] + metadata
         endif
 
         let path = self.getLastPathComponent(1)
@@ -483,8 +500,9 @@ function! s:Path.ignore(nerdtree)
             endif
         endfor
 
-        for callback in g:NERDTree.PathFilters()
-            if {callback}({'path': self, 'nerdtree': a:nerdtree})
+        for Callback in g:NERDTree.PathFilters()
+            let Callback = type(Callback) == type(function("tr")) ? Callback : function(Callback)
+            if Callback({'path': self, 'nerdtree': a:nerdtree})
                 return 1
             endif
         endfor
@@ -564,7 +582,11 @@ endfunction
 " Args:
 " path: the other path obj to compare this with
 function! s:Path.equals(path)
-    return self.str() ==# a:path.str()
+    if nerdtree#runningWindows()
+        return self.str() ==? a:path.str()
+    else
+        return self.str() ==# a:path.str()
+    endif
 endfunction
 
 " FUNCTION: Path.New(pathStr) {{{1

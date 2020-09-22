@@ -27,10 +27,11 @@ syn region  javascriptParenthesisBlock start="(" end=")" contains=@htmlJavascrip
 syn cluster htmlJavascript add=javascriptParenthesisBlock
 
 syn region  pugJavascript matchgroup=pugJavascriptOutputChar start="[!&]\==\|\~" skip=",\s*$" end="$" contained contains=@htmlJavascript keepend
-syn region  pugJavascript matchgroup=pugJavascriptChar start="-" skip=",\s*$" end="$" contained contains=@htmlJavascript keepend
+syn region  pugJavascript matchgroup=pugJavascriptChar start="\(^\|\s\)\@<=-" skip=",\s*$" end="$" contained contains=@htmlJavascript keepend
+
 syn cluster pugTop contains=pugBegin,pugComment,pugHtmlComment,pugJavascript
 syn match   pugBegin "^\s*\%([<>]\|&[^=~ ]\)\@!" nextgroup=pugTag,pugClassChar,pugIdChar,pugPlainChar,pugJavascript,pugScriptConditional,pugScriptStatement,pugPipedText
-syn match   pugTag "+\?[[:alnum:]_-]\+\%(:\w\+\)\=" contained contains=htmlTagName,htmlSpecialTagName nextgroup=@pugComponent
+syn match   pugTag "+\?[[:alnum:]_-]\+\%(:\w\+\)\=" contained contains=htmlTagName,htmlSpecialTagName,pugJavascript nextgroup=@pugComponent
 syn cluster pugComponent contains=pugAttributes,pugIdChar,pugBlockExpansionChar,pugClassChar,pugPlainChar,pugJavascript,pugTagBlockChar,pugTagInlineText
 syn keyword pugCommentTodo  contained TODO FIXME XXX TBD
 syn match   pugComment '\(\s\+\|^\)\/\/.*$' contains=pugCommentTodo,@Spell
@@ -40,7 +41,7 @@ syn region  pugAngular2 start="(" end=")" contains=htmlEvent
 syn region  pugJavascriptString start=+"+  skip=+\\\("\|$\)+  end=+"\|$+ contained
 syn region  pugJavascriptString start=+'+  skip=+\\\('\|$\)+  end=+'\|$+ contained
 syn region  pugJavascriptString start=+`+  skip=+\\\(`\|$\)+  end=+`\|$+ contains=javascriptInterpolation contained
-syn region  pugAttributes matchgroup=pugAttributesDelimiter start="(" end=")" contained contains=pugJavascriptString,pugHtmlArg,pugAngular2,htmlArg,htmlEvent,htmlCssDefinition nextgroup=@pugComponent
+syn region  pugAttributes matchgroup=pugAttributesDelimiter start="(" end="\(.\zs)\)\|)" contained contains=pugJavascriptString,pugHtmlArg,pugAngular2,htmlArg,htmlEvent,htmlCssDefinition nextgroup=@pugComponent
 syn match   pugClassChar "\." containedin=htmlTagName nextgroup=pugClass
 syn match   pugBlockExpansionChar ":\s\+" contained nextgroup=pugTag,pugClassChar,pugIdChar
 syn match   pugIdChar "#[[{]\@!" contained nextgroup=pugId
@@ -55,7 +56,7 @@ syn keyword pugHtmlArg contained href title
 syn match   pugPlainChar "\\" contained
 syn region  pugInterpolation matchgroup=pugInterpolationDelimiter start="[#!]{" end="}" contains=@htmlJavascript
 syn match   pugInterpolationEscape "\\\@<!\%(\\\\\)*\\\%(\\\ze#{\|#\ze{\)"
-syn match   pugTagInlineText "\s.*$" contained contains=@htmlJavascript,pugJavascript,pugInterpolation,pugTextInlinePug,@Spell
+syn match   pugTagInlineText "\s.*$" contained contains=pugInterpolation,pugTextInlinePug,@Spell
 syn region  pugPipedText matchgroup=pugPipeChar start="|" end="$" contained contains=pugInterpolation,pugTextInlinePug,@Spell nextgroup=pugPipedText skipnl
 syn match   pugTagBlockChar "\.$" contained nextgroup=pugTagBlockText,pugTagBlockEnd skipnl
 syn region  pugTagBlockText start="\%(\s*\)\S" end="\ze\n" contained contains=pugInterpolation,pugTextInlinePug,@Spell nextgroup=pugTagBlockText,pugTagBlockEnd skipnl
@@ -69,8 +70,8 @@ syn region  pugPlainFilter matchgroup=pugFilter start="^\z(\s*\):\%(sass\|less\|
 
 syn match  pugScriptConditional "^\s*\<\%(if\|else\|else if\|elif\|unless\|while\|until\|case\|when\|default\)\>[?!]\@!"
 syn match  pugScriptStatement "^\s*\<\%(each\|for\|block\|prepend\|append\|mixin\|extends\|include\)\>[?!]\@!"
-syn region  pugScriptLoopRegion start="^\s*\(for \)" end="$" contains=pugScriptLoopKeywords
-syn keyword  pugScriptLoopKeywords for in
+syn region  pugScriptLoopRegion start="^\s*\(for\|each\)" end="$" contains=pugScriptLoopKeywords
+syn keyword  pugScriptLoopKeywords contained for each in
 
 syn region  pugJavascript start="^\z(\s*\)script\%(:\w\+\)\=" end="^\%(\z1\s\|\s*$\)\@!" contains=@htmlJavascript,pugJavascriptTag,pugCoffeescriptFilter keepend
 syn region javascriptInterpolation start=/${/ end=/}/ contained

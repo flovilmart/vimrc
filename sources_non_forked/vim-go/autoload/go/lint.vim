@@ -9,30 +9,18 @@ function! go#lint#Gometa(bang, autosave, ...) abort
     let goargs = a:000
   endif
 
-  if empty(go#config#MetalinterCommand())
-    let bin_path = go#path#CheckBinPath("gometalinter")
-    if empty(bin_path)
+  let l:metalinter = go#config#MetalinterCommand()
+
+  if l:metalinter == 'golangci-lint'
+    let cmd = s:metalintercmd(l:metalinter)
+    if empty(cmd)
       return
     endif
-
-    let cmd = [bin_path]
-    let cmd += ["--disable-all"]
-
-    " gometalinter has a --tests flag to tell its linters whether to run
-    " against tests. While not all of its linters respect this flag, for those
-    " that do, it means if we don't pass --tests, the linter won't run against
-    " test files. One example of a linter that will not run against tests if
-    " we do not specify this flag is errcheck.
-    let cmd += ["--tests"]
 
     " linters
     let linters = a:autosave ? go#config#MetalinterAutosaveEnabled() : go#config#MetalinterEnabled()
     for linter in linters
       let cmd += ["--enable=".linter]
-    endfor
-
-    for linter in go#config#MetalinterDisabled()
-      let cmd += ["--disable=".linter]
     endfor
   else
     " the user wants something else, let us use it.
@@ -44,15 +32,12 @@ function! go#lint#Gometa(bang, autosave, ...) abort
     " will be cleared
     redraw
 
-    " Include only messages for the active buffer for autosave.
-    let include = [printf('--include=^%s:.*$', fnamemodify(expand('%:p'), ":."))]
-    if go#util#has_job()
-      let include = [printf('--include=^%s:.*$', expand('%:p:t'))]
+    if l:metalinter == "golangci-lint"
+      let goargs[0] = expand('%:p:h')
     endif
-    let cmd += include
   endif
 
-  " Call gometalinter asynchronously.
+  " Call metalinter asynchronously.
   let deadline = go#config#MetalinterDeadline()
   if deadline != ''
     let cmd += ["--deadline=" . deadline]
@@ -60,8 +45,13 @@ function! go#lint#Gometa(bang, autosave, ...) abort
 
   let cmd += goargs
 
+  " Golangci-lint can output the following:
+  "   <file>:<line>:<column>: <message> (<linter>)
+  " This can be defined by the following errorformat:
+  let errformat = "%f:%l:%c:\ %m"
+
   if go#util#has_job()
-    call s:lint_job({'cmd': cmd}, a:bang, a:autosave)
+    call s:lint_job({'cmd': cmd, 'statustype': l:metalinter, 'errformat': errformat}, a:bang, a:autosave)
     return
   endif
 
@@ -75,23 +65,26 @@ function! go#lint#Gometa(bang, autosave, ...) abort
 
   if l:err == 0
     call go#list#Clean(l:listtype)
-    echon "vim-go: " | echohl Function | echon "[metalinter] PASS" | echohl None
+    call go#util#EchoSuccess('[metalinter] PASS')
   else
-    " GoMetaLinter can output one of the two, so we look for both:
-    "   <file>:<line>:<column>:<severity>: <message> (<linter>)
-    "   <file>:<line>::<severity>: <message> (<linter>)
-    " This can be defined by the following errorformat:
-    let errformat = "%f:%l:%c:%t%*[^:]:\ %m,%f:%l::%t%*[^:]:\ %m"
-
+    let l:winid = win_getid(winnr())
     " Parse and populate our location list
-    call go#list#ParseFormat(l:listtype, errformat, split(out, "\n"), 'GoMetaLinter')
+
+    let l:messages = split(out, "\n")
+
+    if a:autosave
+      call s:metalinterautosavecomplete(fnamemodify(expand('%:p'), ":."), 0, 1, l:messages)
+    endif
+    call go#list#ParseFormat(l:listtype, errformat, l:messages, 'GoMetaLinter')
 
     let errors = go#list#Get(l:listtype)
     call go#list#Window(l:listtype, len(errors))
 
-    if !a:autosave && !a:bang
-      call go#list#JumpToFirst(l:listtype)
+    if a:autosave || a:bang
+      call win_gotoid(l:winid)
+      return
     endif
+    call go#list#JumpToFirst(l:listtype)
   endif
 endfunction
 
@@ -99,7 +92,7 @@ endfunction
 " the location list
 function! go#lint#Golint(bang, ...) abort
   if a:0 == 0
-    let [l:out, l:err] = go#util#Exec([go#config#GolintBin(), go#package#ImportPath()])
+    let [l:out, l:err] = go#util#Exec([go#config#GolintBin(), expand('%:p:h')])
   else
     let [l:out, l:err] = go#util#Exec([go#config#GolintBin()] + a:000)
   endif
@@ -109,13 +102,18 @@ function! go#lint#Golint(bang, ...) abort
     return
   endif
 
+  let l:winid = win_getid(winnr())
   let l:listtype = go#list#Type("GoLint")
   call go#list#Parse(l:listtype, l:out, "GoLint")
   let l:errors = go#list#Get(l:listtype)
   call go#list#Window(l:listtype, len(l:errors))
-  if !a:bang
-    call go#list#JumpToFirst(l:listtype)
+
+  if a:bang
+    call win_gotoid(l:winid)
+    return
   endif
+
+  call go#list#JumpToFirst(l:listtype)
 endfunction
 
 " Vet calls 'go vet' on the current directory. Any warnings are populated in
@@ -127,20 +125,38 @@ function! go#lint#Vet(bang, ...) abort
     call go#util#EchoProgress('calling vet...')
   endif
 
-  if a:0 == 0
-    let [l:out, l:err] = go#util#Exec(['go', 'vet', go#package#ImportPath()])
-  else
-    let [l:out, l:err] = go#util#Exec(['go', 'tool', 'vet'] + a:000)
+  let l:cmd = ['go', 'vet']
+
+  let buildtags = go#config#BuildTags()
+  if buildtags isnot ''
+    let cmd += ['-tags', buildtags]
   endif
+
+  if a:0 != 0
+    call extend(cmd, a:000)
+  endif
+
+  let cmd += [go#package#ImportPath()]
+
+  let [l:out, l:err] = go#util#Exec(l:cmd)
 
   let l:listtype = go#list#Type("GoVet")
   if l:err != 0
-    let errorformat = "%-Gexit status %\\d%\\+," . &errorformat
+    let l:winid = win_getid(winnr())
+    let l:errorformat = "%-Gexit status %\\d%\\+," . &errorformat
     call go#list#ParseFormat(l:listtype, l:errorformat, out, "GoVet")
-    let errors = go#list#Get(l:listtype)
-    call go#list#Window(l:listtype, len(errors))
-    if !empty(errors) && !a:bang
+    let l:errors = go#list#Get(l:listtype)
+
+    if empty(l:errors)
+      call go#util#EchoError(l:out)
+      return
+    endif
+
+    call go#list#Window(l:listtype, len(l:errors))
+    if !empty(l:errors) && !a:bang
       call go#list#JumpToFirst(l:listtype)
+    else
+      call win_gotoid(l:winid)
     endif
   else
     call go#list#Clean(l:listtype)
@@ -168,6 +184,7 @@ function! go#lint#Errcheck(bang, ...) abort
 
   let l:listtype = go#list#Type("GoErrCheck")
   if l:err != 0
+    let l:winid = win_getid(winnr())
     let errformat = "%f:%l:%c:\ %m, %f:%l:%c\ %#%m"
 
     " Parse and populate our location list
@@ -184,6 +201,8 @@ function! go#lint#Errcheck(bang, ...) abort
       call go#list#Window(l:listtype, len(errors))
       if !a:bang
         call go#list#JumpToFirst(l:listtype)
+      else
+        call win_gotoid(l:winid)
       endif
     endif
   else
@@ -205,20 +224,67 @@ endfunction
 
 function! s:lint_job(args, bang, autosave)
   let l:opts = {
-        \ 'statustype': "gometalinter",
-        \ 'errorformat': '%f:%l:%c:%t%*[^:]:\ %m,%f:%l::%t%*[^:]:\ %m',
+        \ 'statustype': a:args.statustype,
+        \ 'errorformat': a:args.errformat,
         \ 'for': "GoMetaLinter",
         \ 'bang': a:bang,
         \ }
 
   if a:autosave
     let l:opts.for = "GoMetaLinterAutoSave"
+    " s:metalinterautosavecomplete is really only needed for golangci-lint
+    let l:opts.complete = funcref('s:metalinterautosavecomplete', [expand('%:p:t')])
   endif
 
   " autowrite is not enabled for jobs
   call go#cmd#autowrite()
 
   call go#job#Spawn(a:args.cmd, l:opts)
+endfunction
+
+function! s:metalintercmd(metalinter)
+  let l:cmd = []
+  let bin_path = go#path#CheckBinPath(a:metalinter)
+  if !empty(bin_path)
+    if a:metalinter == "golangci-lint"
+      let l:cmd = s:golangcilintcmd(bin_path)
+    endif
+  endif
+
+  return cmd
+endfunction
+
+function! s:golangcilintcmd(bin_path)
+  let cmd = [a:bin_path]
+  let cmd += ["run"]
+  let cmd += ["--print-issued-lines=false"]
+  let cmd += ['--build-tags', go#config#BuildTags()]
+  let cmd += ["--disable-all"]
+  " do not use the default exclude patterns, because doing so causes golint
+  " problems about missing doc strings to be ignored and other things that
+  " golint identifies.
+  let cmd += ["--exclude-use-default=false"]
+
+  return cmd
+endfunction
+
+function! s:metalinterautosavecomplete(filepath, job, exit_code, messages)
+  if len(a:messages) == 0
+    return
+  endif
+
+  let l:idx = len(a:messages) - 1
+  while l:idx >= 0
+    " Go 1.13 changed how go vet output is formatted by prepending a leading
+    " 'vet :', so account for that, too. This function is really needed for
+    " gometalinter at all, so the check for Go 1.13's go vet output shouldn't
+    " be neeeded, but s:lint_job hooks this up even when the
+    " g:go_metalinter_command is golangci-lint.
+    if a:messages[l:idx] !~# '^' . a:filepath . ':' && a:messages[l:idx] !~# '^vet: \.[\\/]' . a:filepath . ':'
+      call remove(a:messages, l:idx)
+    endif
+    let l:idx -= 1
+  endwhile
 endfunction
 
 " restore Vi compatibility settings

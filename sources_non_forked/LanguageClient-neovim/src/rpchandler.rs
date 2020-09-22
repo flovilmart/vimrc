@@ -1,3 +1,4 @@
+use super::types::OptionDeref;
 use super::*;
 use crate::language_client::LanguageClient;
 use crate::lsp::notification::Notification;
@@ -7,7 +8,7 @@ impl LanguageClient {
     pub fn handle_call(&self, msg: Call) -> Fallible<()> {
         match msg {
             Call::MethodCall(lang_id, method_call) => {
-                let result = self.handle_method_call(lang_id.as_deref(), &method_call);
+                let result = self.handle_method_call(OptionDeref::as_deref(&lang_id), &method_call);
                 if let Err(ref err) = result {
                     if err.find_root_cause().downcast_ref::<LCError>().is_none() {
                         error!(
@@ -22,7 +23,8 @@ impl LanguageClient {
                     .output(method_call.id.to_int()?, result)?;
             }
             Call::Notification(lang_id, notification) => {
-                let result = self.handle_notification(lang_id.as_deref(), &notification);
+                let result =
+                    self.handle_notification(OptionDeref::as_deref(&lang_id), &notification);
                 if let Err(ref err) = result {
                     if err.downcast_ref::<LCError>().is_none() {
                         error!(
@@ -36,7 +38,7 @@ impl LanguageClient {
             }
         }
 
-        // TODO
+        // FIXME
         if let Err(err) = self.handle_fs_events() {
             warn!("{:?}", err);
         }
@@ -70,6 +72,7 @@ impl LanguageClient {
             lsp::request::DocumentSymbolRequest::METHOD => {
                 self.textDocument_documentSymbol(&params)
             }
+            lsp::request::ShowMessageRequest::METHOD => self.window_showMessageRequest(&params),
             lsp::request::WorkspaceSymbol::METHOD => self.workspace_symbol(&params),
             lsp::request::CodeActionRequest::METHOD => self.textDocument_codeAction(&params),
             lsp::request::Completion::METHOD => self.textDocument_completion(&params),
@@ -110,8 +113,8 @@ impl LanguageClient {
                     }
                 } else {
                     // Message from vim. Proxy to language server.
-                    let (languageId_target,): (String,) =
-                        self.gather_args(&[VimVar::LanguageId], &params)?;
+                    let filename = self.vim()?.get_filename(&params)?;
+                    let languageId_target = self.vim()?.get_languageId(&filename, &params)?;
                     info!(
                         "Proxy message directly to language server: {:?}",
                         method_call
@@ -189,8 +192,8 @@ impl LanguageClient {
                     }
                 } else {
                     // Message from vim. Proxy to language server.
-                    let (languageId_target,): (String,) =
-                        self.gather_args(&[VimVar::LanguageId], &params)?;
+                    let filename = self.vim()?.get_filename(&params)?;
+                    let languageId_target = self.vim()?.get_languageId(&filename, &params)?;
                     info!(
                         "Proxy message directly to language server: {:?}",
                         notification

@@ -1,9 +1,9 @@
-" Version: 0.10.0
+" Version: 0.11.0
 " Webpage: https://github.com/ryanoasis/vim-devicons
 " Maintainer: Ryan McIntyre <ryanoasis@gmail.com>
 " License: see LICENSE
 
-let s:version = '0.10.0'
+let s:version = '0.11.0'
 let s:plugin_home = expand('<sfile>:p:h:h')
 
 " set scriptencoding after 'encoding' and when using multibyte chars
@@ -53,15 +53,16 @@ call s:set('g:webdevicons_enable_airline_statusline', 1)
 call s:set('g:webdevicons_enable_airline_statusline_fileformat_symbols', 1)
 call s:set('g:webdevicons_enable_flagship_statusline', 1)
 call s:set('g:webdevicons_enable_flagship_statusline_fileformat_symbols', 1)
+call s:set('g:webdevicons_enable_startify', 1)
 call s:set('g:webdevicons_conceal_nerdtree_brackets', 1)
 call s:set('g:DevIconsAppendArtifactFix', has('gui_running') ? 1 : 0)
-call s:set('g:DevIconsArtifactFixChar', " ")
+call s:set('g:DevIconsArtifactFixChar', ' ')
 
 " config options {{{1
 "========================================================================
 
 call s:set('g:WebDevIconsUnicodeDecorateFileNodes', 1)
-call s:set('g:WebDevIconsUnicodeDecorateFolderNodes', 0)
+call s:set('g:WebDevIconsUnicodeDecorateFolderNodes', 1)
 call s:set('g:DevIconsEnableFoldersOpenClose', 0)
 call s:set('g:DevIconsEnableFolderPatternMatching', 1)
 call s:set('g:DevIconsEnableFolderExtensionPatternMatching', 0)
@@ -136,10 +137,12 @@ function! s:setDictionaries()
         \ 'css'      : '',
         \ 'less'     : '',
         \ 'md'       : '',
+        \ 'mdx'      : '',
         \ 'markdown' : '',
         \ 'rmd'      : '',
         \ 'json'     : '',
         \ 'js'       : '',
+        \ 'mjs'      : '',
         \ 'jsx'      : '',
         \ 'rb'       : '',
         \ 'php'      : '',
@@ -154,6 +157,7 @@ function! s:setDictionaries()
         \ 'ini'      : '',
         \ 'yml'      : '',
         \ 'yaml'     : '',
+        \ 'toml'     : '',
         \ 'bat'      : '',
         \ 'jpg'      : '',
         \ 'jpeg'     : '',
@@ -168,7 +172,9 @@ function! s:setDictionaries()
         \ 'cc'       : '',
         \ 'cp'       : '',
         \ 'c'        : '',
+        \ 'cs'       : '',
         \ 'h'        : '',
+        \ 'hh'       : '',
         \ 'hpp'      : '',
         \ 'hxx'      : '',
         \ 'hs'       : '',
@@ -216,6 +222,7 @@ function! s:setDictionaries()
         \ 'ex'       : '',
         \ 'exs'      : '',
         \ 'eex'      : '',
+        \ 'leex'     : '',
         \ 'vim'      : '',
         \ 'ai'       : '',
         \ 'psd'      : '',
@@ -225,6 +232,7 @@ function! s:setDictionaries()
         \ 'jl'       : '',
         \ 'pp'       : '',
         \ 'vue'      : '﵂',
+        \ 'elm'      : '',
         \ 'swift'    : '',
         \ 'xcplayground' : ''
         \}
@@ -238,10 +246,12 @@ function! s:setDictionaries()
         \ 'gulpfile.coffee'                  : '',
         \ 'gulpfile.js'                      : '',
         \ 'gulpfile.ls'                      : '',
+        \ 'mix.lock'                         : '',
         \ 'dropbox'                          : '',
         \ '.ds_store'                        : '',
         \ '.gitconfig'                       : '',
         \ '.gitignore'                       : '',
+        \ '.gitlab-ci.yml'                   : '',
         \ '.bashrc'                          : '',
         \ '.zshrc'                           : '',
         \ '.vimrc'                           : '',
@@ -374,123 +384,6 @@ function! s:softRefreshNerdTree()
   endif
 endfunction
 
-" for vim-flagship plugin {{{3
-"========================================================================
-
-" scope: local
-function! s:initializeFlagship()
-  if exists('g:loaded_flagship')
-    if g:webdevicons_enable_flagship_statusline
-      augroup webdevicons_flagship_filetype
-        autocmd User Flags call Hoist('buffer', 'WebDevIconsGetFileTypeSymbol')
-      augroup END
-    endif
-
-    if g:webdevicons_enable_flagship_statusline_fileformat_symbols
-      augroup webdevicons_flagship_filesymbol
-        autocmd User Flags call Hoist('buffer', 'WebDevIconsGetFileFormatSymbol')
-      augroup END
-    endif
-  endif
-endfunction
-
-" for unite plugin {{{3
-"========================================================================
-
-" scope: local
-function! s:initializeUnite()
-  if exists('g:loaded_unite') && g:webdevicons_enable_unite
-    let s:filters = {
-          \   'name' : 'devicons_unite_converter',
-          \}
-
-    function! s:filters.filter(candidates, context)
-      for candidate in a:candidates
-
-        if has_key(candidate, 'action__buffer_nr')
-          let bufname = bufname(candidate.action__buffer_nr)
-          let filename = fnamemodify(bufname, ':p:t')
-          let path = fnamemodify(bufname, ':p:h')
-        elseif has_key(candidate, 'word') && has_key(candidate, 'action__path')
-          let path = candidate.action__path
-          let filename = candidate.word
-        endif
-
-        let icon = WebDevIconsGetFileTypeSymbol(filename, isdirectory(filename))
-
-        " prevent filenames of buffers getting 'lost'
-        if filename != path
-          let path = printf('%s', filename)
-        endif
-
-        " Customize output format.
-        let candidate.abbr = printf('%s %s', icon, path)
-      endfor
-      return a:candidates
-    endfunction
-
-    call unite#define_filter(s:filters)
-    unlet s:filters
-
-    call unite#custom#source('file,file_rec,buffer,file_rec/async,file_rec/neovim,file_rec/neovim2,file_rec/git', 'converters', 'devicons_unite_converter')
-  endif
-endfunction
-
-" for denite plugin {{{3
-"========================================================================
-
-" scope: local
-function! s:initializeDenite()
-  if exists('g:loaded_denite') && g:webdevicons_enable_denite
-    call denite#custom#source('file_rec,file_mru,file_old,buffer,directory_rec,directory_mru', 'converters', ['devicons_denite_converter'])
-  endif
-endfunction
-
-" for vimfiler plugin {{{3
-"========================================================================
-
-" scope: local
-function! s:initializeVimfiler()
-  if exists('g:loaded_vimfiler') && g:webdevicons_enable_vimfiler
-    call vimfiler#custom#profile('default', 'context', {
-      \ 'columns' : 'devicons:size:time',
-      \ 'explorer_columns': 'devicons'
-      \ })
-  endif
-endfunction
-
-" for ctrlp plugin {{{3
-"========================================================================
-
-" scope: local
-" Initialize for up to date ctrlp fork: ctrlpvim/ctrlp.vim
-" Support for kien/ctrlp.vim deprecated since v0.7.0
-" @TODO implementation for CtrlP buffer and find file mode
-function! s:initializeCtrlP()
-  let l:ctrlp_warning_message = 'vim-devicons: https://github.com/kien/ctrlp.vim is deprecated since v0.7.0, please use https://github.com/ctrlpvim/ctrlp.vim'
-  let l:ctrlp_warned_file = s:plugin_home . '/status_warned_ctrlp'
-
-  if exists('g:loaded_ctrlp') && g:webdevicons_enable_ctrlp
-    let l:forkedCtrlp = exists('g:ctrlp_mruf_map_string')
-
-    if l:forkedCtrlp
-      if !exists('g:ctrlp_formatline_func')
-        " logic for ctrlpvim/ctrlp.vim:
-        let g:ctrlp_formatline_func = 's:formatline(s:curtype() == "buf" ? v:val : WebDevIconsGetFileTypeSymbol(v:val) . " " . v:val) '
-      endif
-    elseif empty(glob(l:ctrlp_warned_file))
-      " logic for kien/ctrlp.vim:
-      echohl WarningMsg |
-        \ echomsg l:ctrlp_warning_message
-      " only warn first time, do not warn again:
-      try
-        execute writefile(['File automatically generated after warning about CtrlP once', l:ctrlp_warning_message], l:ctrlp_warned_file)
-      catch
-      endtry
-    endif
-  endif
-endfunction
-
 " local initialization {{{2
 "========================================================================
 
@@ -499,15 +392,15 @@ function! s:initialize()
   call s:setDictionaries()
   call s:setSyntax()
   call s:setCursorHold()
-  call s:initializeFlagship()
-  call s:initializeUnite()
-  call s:initializeDenite()
-  call s:initializeVimfiler()
-  call s:initializeCtrlP()
+
+  if exists('g:loaded_flagship') | call devicons#plugins#flagship#init() | endif
+  if exists('g:loaded_unite') && g:webdevicons_enable_unite | call devicons#plugins#unite#init() | endif
+  if exists('g:loaded_denite') && g:webdevicons_enable_denite | call devicons#plugins#denite#init() | endif
+  if exists('g:loaded_vimfiler') && g:webdevicons_enable_vimfiler | call devicons#plugins#vimfiler#init() | endif
+  if exists('g:loaded_ctrlp') && g:webdevicons_enable_ctrlp | call devicons#plugins#ctrlp#init() | endif
+  if exists('g:loaded_startify') && g:webdevicons_enable_startify | call devicons#plugins#startify#init() | endif
 endfunction
 
-" had some issues with VimEnter, for now using:
-call s:initialize()
 
 " public functions {{{2
 "========================================================================
@@ -515,6 +408,11 @@ call s:initialize()
 " scope: public
 function! webdevicons#version()
   return s:version
+endfunction
+
+" scope: public
+function! webdevicons#pluginHome()
+  return s:plugin_home
 endfunction
 
 " scope: public
@@ -632,7 +530,7 @@ function! AirlineWebDevIcons(...)
   let w:airline_section_x = get(w:, 'airline_section_x',
         \ get(g:, 'airline_section_x', ''))
   let w:airline_section_x .= ' %{WebDevIconsGetFileTypeSymbol()} '
-  let hasFileFormatEncodingPart = airline#parts#ffenc() != ''
+  let hasFileFormatEncodingPart = airline#parts#ffenc() !=? ''
   if g:webdevicons_enable_airline_statusline_fileformat_symbols && hasFileFormatEncodingPart
     let w:airline_section_y = ' %{&fenc . " " . WebDevIconsGetFileFormatSymbol()} '
   endif
@@ -664,13 +562,9 @@ function! NERDTreeWebDevIconsRefreshListener(event)
   let hasGitNerdTreePlugin = (exists('g:loaded_nerdtree_git_status') == 1)
   let artifactFix = s:DevIconsGetArtifactFix()
 
-  if hasGitFlags && g:WebDevIconsUnicodeGlyphDoubleWidth == 1
-    let prePadding .= ' '
-  endif
-
   " align vertically at the same level: non git-flag nodes with git-flag nodes
   if g:WebDevIconsNerdTreeGitPluginForceVAlign && !hasGitFlags && hasGitNerdTreePlugin
-    let prePadding .= '  '
+    let prePadding .= ' '
   endif
 
   if !path.isDirectory
@@ -727,7 +621,7 @@ function! NERDTreeWebDevIconsRefreshListener(event)
     endif
 
   else
-    let flag = ''
+    let flag = prePadding . ' ' . artifactFix . postPadding
   endif
 
   call path.flagSet.clearFlags('webdevicons')
@@ -737,6 +631,11 @@ function! NERDTreeWebDevIconsRefreshListener(event)
   endif
 
 endfunction
+
+" call setup after processing all the functions (to avoid errors) {{{1
+"========================================================================
+" had some issues with VimEnter, for now using:
+call s:initialize()
 
 " standard fix/safety: line continuation (avoiding side effects) {{{1
 "========================================================================

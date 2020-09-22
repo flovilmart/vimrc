@@ -44,11 +44,14 @@ pub fn get_rootPath<'a>(
     match languageId {
         "rust" => traverse_up(path, |dir| dir.join("Cargo.toml").exists()),
         "php" => traverse_up(path, |dir| dir.join("composer.json").exists()),
-        "javascript" | "typescript" => traverse_up(path, |dir| dir.join("package.json").exists()),
+        "javascript" | "typescript" | "javascript.jsx" | "typescript.tsx" => {
+            traverse_up(path, |dir| dir.join("package.json").exists())
+        }
         "python" => traverse_up(path, |dir| {
             dir.join("setup.py").exists()
                 || dir.join("Pipfile").exists()
                 || dir.join("requirements.txt").exists()
+                || dir.join("pyproject.toml").exists()
         }),
         "c" | "cpp" => traverse_up(path, |dir| dir.join("compile_commands.json").exists()),
         "cs" => traverse_up(path, is_dotnet_root),
@@ -138,12 +141,12 @@ pub fn apply_TextEdits(lines: &[String], edits: &[TextEdit]) -> Fallible<Vec<Str
 
         let start = lines[..std::cmp::min(start_line, lines.len())]
             .iter()
-            .map(|l| l.len())
+            .map(String::len)
             .fold(0, |acc, l| acc + l + 1 /*line ending*/)
             + start_character;
         let end = lines[..std::cmp::min(end_line, lines.len())]
             .iter()
-            .map(|l| l.len())
+            .map(String::len)
             .fold(0, |acc, l| acc + l + 1 /*line ending*/)
             + end_character;
         edits_by_index.push((start, end, &edit.new_text));
@@ -156,7 +159,7 @@ pub fn apply_TextEdits(lines: &[String], edits: &[TextEdit]) -> Fallible<Vec<Str
         text = String::new() + &text[..start] + new_text + &text[end..];
     }
 
-    Ok(text.lines().map(|l| l.to_owned()).collect())
+    Ok(text.lines().map(ToOwned::to_owned).collect())
 }
 
 #[test]
@@ -219,94 +222,6 @@ fn test_apply_TextEdit_overlong_end() {
     };
 
     assert_eq!(apply_TextEdits(&lines, &[edit]).unwrap(), expect);
-}
-
-fn get_command_add_sign(sign: &Sign, filename: &str) -> String {
-    format!(
-        "sign place {} line={} name=LanguageClient{:?} file={}",
-        sign.id,
-        sign.line,
-        sign.severity.unwrap_or(DiagnosticSeverity::Hint),
-        filename
-    )
-}
-
-#[test]
-fn test_get_command_add_sign() {
-    let sign = Sign::new(1, "".to_owned(), Some(DiagnosticSeverity::Error));
-    assert_eq!(
-        get_command_add_sign(&sign, ""),
-        "sign place 75000 line=1 name=LanguageClientError file="
-    );
-
-    let sign = Sign::new(7, "".to_owned(), Some(DiagnosticSeverity::Error));
-    assert_eq!(
-        get_command_add_sign(&sign, ""),
-        "sign place 75024 line=7 name=LanguageClientError file="
-    );
-
-    let sign = Sign::new(7, "".to_owned(), Some(DiagnosticSeverity::Hint));
-    assert_eq!(
-        get_command_add_sign(&sign, ""),
-        "sign place 75027 line=7 name=LanguageClientHint file="
-    );
-}
-
-fn get_command_delete_sign(sign: &Sign, filename: &str) -> String {
-    format!("sign unplace {} file={}", sign.id, filename)
-}
-
-#[test]
-fn test_get_command_delete_sign() {}
-
-use diff;
-
-pub fn get_command_update_signs(
-    signs_prev: &[Sign],
-    signs: &[Sign],
-    filename: &str,
-) -> (Vec<Sign>, Vec<String>) {
-    // Sign id might become different due to lines shifting. Use sign's existing sign id to
-    // track same sign.
-    let mut signs_next = vec![];
-
-    let mut cmds = vec![];
-    for comp in diff::slice(signs_prev, signs) {
-        match comp {
-            diff::Result::Left(sign) => {
-                cmds.push(get_command_delete_sign(sign, filename));
-            }
-            diff::Result::Right(sign) => {
-                cmds.push(get_command_add_sign(sign, filename));
-                signs_next.push(sign.clone());
-            }
-            diff::Result::Both(sign, _) => {
-                signs_next.push(sign.clone());
-            }
-        }
-    }
-
-    (signs_next, cmds)
-}
-
-#[test]
-fn test_get_command_update_signs() {
-    let signs_prev = vec![Sign::new(
-        1,
-        "abcde".to_string(),
-        Some(DiagnosticSeverity::Error),
-    )];
-    let signs = vec![Sign::new(
-        3,
-        "abcde".to_string(),
-        Some(DiagnosticSeverity::Error),
-    )];
-    let (signs_next, cmds) = get_command_update_signs(&signs_prev, &signs, "f");
-    assert_eq!(
-        serde_json::to_string(&signs_next).unwrap(),
-        "[{\"id\":75000,\"line\":1,\"text\":\"abcde\",\"severity\":1}]"
-    );
-    assert!(cmds.is_empty());
 }
 
 pub trait Combine {
@@ -495,7 +410,7 @@ where
 
         // Trim UNC prefixes.
         // See https://github.com/rust-lang/rust/issues/42869
-        path.trim_left_matches("\\\\?\\").into()
+        path.trim_start_matches("\\\\?\\").into()
     }
 }
 

@@ -25,8 +25,13 @@ setlocal noexpandtab
 
 compiler go
 
-" Set gocode completion
-setlocal omnifunc=go#complete#Complete
+if go#config#CodeCompletionEnabled()
+  " Set autocompletion
+  setlocal omnifunc=go#complete#Complete
+  if !go#util#has_job()
+    setlocal omnifunc=go#complete#GocodeComplete
+  endif
+endif
 
 if get(g:, "go_doc_keywordprg_enabled", 1)
   " keywordprg doesn't allow to use vim commands, override it
@@ -40,8 +45,8 @@ if get(g:, "go_def_mapping_enabled", 1)
   nnoremap <buffer> <silent> <C-]> :GoDef<cr>
   nnoremap <buffer> <silent> <C-LeftMouse> <LeftMouse>:GoDef<cr>
   nnoremap <buffer> <silent> g<LeftMouse> <LeftMouse>:GoDef<cr>
-  nnoremap <buffer> <silent> <C-w><C-]> :<C-u>call go#def#Jump("split")<CR>
-  nnoremap <buffer> <silent> <C-w>] :<C-u>call go#def#Jump("split")<CR>
+  nnoremap <buffer> <silent> <C-w><C-]> :<C-u>call go#def#Jump("split", 0)<CR>
+  nnoremap <buffer> <silent> <C-w>] :<C-u>call go#def#Jump("split", 0)<CR>
   nnoremap <buffer> <silent> <C-t> :<C-U>call go#def#StackPop(v:count1)<cr>
 endif
 
@@ -69,23 +74,29 @@ if get(g:, "go_textobj_enabled", 1)
   xnoremap <buffer> <silent> [[ :<c-u>call go#textobj#FunctionJump('v', 'prev')<cr>
 endif
 
-if go#config#AutoTypeInfo() || go#config#AutoSameids()
-  let &l:updatetime= get(g:, "go_updatetime", 800)
-endif
-
 " Autocommands
 " ============================================================================
 "
 augroup vim-go-buffer
   autocmd! * <buffer>
 
-  autocmd CursorHold <buffer> call go#auto#auto_type_info()
-  autocmd CursorHold <buffer> call go#auto#auto_sameids()
+  " The file is registered (textDocument/DidOpen) with gopls in plugin/go.vim
+  " on the FileType event.
+  " TODO(bc): handle all the other events that may be of interest to gopls,
+  " too (e.g.  BufFilePost , CursorHold , CursorHoldI, FileReadPost,
+  " StdinReadPre, BufWritePost, TextChange, TextChangedI)
+  if go#util#has_job()
+    autocmd BufWritePost <buffer> call go#lsp#DidChange(expand('<afile>:p'))
+    autocmd FileChangedShellPost <buffer> call go#lsp#DidChange(expand('<afile>:p'))
+    autocmd BufDelete <buffer> call go#lsp#DidClose(expand('<afile>:p'))
+  endif
+
+  autocmd BufEnter,CursorHold <buffer> call go#auto#update_autocmd()
 
   " Echo the identifier information when completion is done. Useful to see
   " the signature of a function, etc...
   if exists('##CompleteDone')
-    autocmd CompleteDone <buffer> call go#auto#echo_go_info()
+    autocmd CompleteDone <buffer> call go#auto#complete_done()
   endif
 
   autocmd BufWritePre <buffer> call go#auto#fmt_autosave()

@@ -45,6 +45,7 @@ mod language_client;
 mod language_server_protocol;
 mod logger;
 mod rpchandler;
+mod sign;
 mod viewport;
 mod vim;
 mod vimext;
@@ -60,7 +61,10 @@ fn main() -> Fallible<()> {
     let _ = args.get_matches();
 
     let (tx, rx) = crossbeam_channel::unbounded();
-    let language_client = language_client::LanguageClient(Arc::new(Mutex::new(State::new(tx)?)));
+    let language_client = language_client::LanguageClient {
+        state_mutex: Arc::new(Mutex::new(State::new(tx)?)),
+        clients_mutex: Arc::new(Mutex::new(HashMap::new())),
+    };
 
     language_client.loop_call(&rx)
 }

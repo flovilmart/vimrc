@@ -1,5 +1,18 @@
+use super::types::OptionDeref;
 use super::*;
 use crate::rpcclient::RpcClient;
+use crate::sign::Sign;
+use crate::viewport::Viewport;
+
+/// Try get value of an variable from RPC params.
+pub fn try_get<R: DeserializeOwned>(key: &str, params: &Value) -> Fallible<Option<R>> {
+    let value = &params[key];
+    if value == &Value::Null {
+        Ok(None)
+    } else {
+        Ok(serde_json::from_value(value.clone())?)
+    }
+}
 
 #[derive(Clone, Serialize)]
 pub struct Vim {
@@ -8,7 +21,7 @@ pub struct Vim {
 
 impl Vim {
     pub fn new(rpcclient: RpcClient) -> Self {
-        Vim { rpcclient }
+        Self { rpcclient }
     }
 
     /// Fundamental functions.
@@ -26,6 +39,78 @@ impl Vim {
     }
 
     /// Function wrappers.
+
+    pub fn getbufvar<R: DeserializeOwned>(&self, bufname: &str, var: &str) -> Fallible<R> {
+        self.rpcclient.call("getbufvar", json!([bufname, var]))
+    }
+
+    pub fn get_filename(&self, params: &Value) -> Fallible<String> {
+        let key = "filename";
+        let expr = "LSP#filename()";
+
+        try_get(key, params)?.map_or_else(|| self.eval(expr), Ok)
+    }
+
+    pub fn get_languageId(&self, filename: &str, params: &Value) -> Fallible<String> {
+        let key = "languageId";
+        let expr = "&filetype";
+
+        try_get(key, params)?.map_or_else(|| self.getbufvar(filename, expr), Ok)
+    }
+
+    pub fn get_bufnr(&self, filename: &str, params: &Value) -> Fallible<Bufnr> {
+        let key = "bufnr";
+
+        try_get(key, params)?.map_or_else(|| self.eval(format!("bufnr('{}')", filename)), Ok)
+    }
+
+    pub fn get_viewport(&self, params: &Value) -> Fallible<Viewport> {
+        let key = "viewport";
+        let expr = "LSP#viewport()";
+
+        try_get(key, params)?.map_or_else(|| self.eval(expr), Ok)
+    }
+
+    pub fn get_position(&self, params: &Value) -> Fallible<Position> {
+        let key = "position";
+        let expr = "LSP#position()";
+
+        try_get(key, params)?.map_or_else(|| self.eval(expr), Ok)
+    }
+
+    pub fn get_current_word(&self, params: &Value) -> Fallible<String> {
+        let key = "cword";
+        let expr = "expand('<cword>')";
+
+        try_get(key, params)?.map_or_else(|| self.eval(expr), Ok)
+    }
+
+    pub fn get_goto_cmd(&self, params: &Value) -> Fallible<Option<String>> {
+        let key = "gotoCmd";
+
+        try_get(key, params)
+    }
+
+    pub fn get_tab_size(&self) -> Fallible<u64> {
+        let expr = "shiftwidth()";
+
+        self.eval(expr)
+    }
+
+    pub fn get_insert_spaces(&self, filename: &str) -> Fallible<bool> {
+        let insert_spaces: i8 = self.getbufvar(filename, "&expandtab")?;
+        Ok(insert_spaces == 1)
+    }
+
+    pub fn get_text(&self, bufname: &str) -> Fallible<Vec<String>> {
+        self.rpcclient.call("LSP#text", json!([bufname]))
+    }
+
+    pub fn get_handle(&self, params: &Value) -> Fallible<bool> {
+        let key = "handle";
+
+        try_get(key, params)?.map_or_else(|| Ok(true), Ok)
+    }
 
     pub fn echo(&self, message: impl AsRef<str>) -> Fallible<()> {
         self.rpcclient.notify("s:Echo", message.as_ref())
@@ -57,34 +142,15 @@ impl Vim {
         self.rpcclient.notify("cursor", json!([lnum, col]))
     }
 
+    #[allow(dead_code)]
     pub fn setline(&self, lnum: u64, text: &[String]) -> Fallible<()> {
         self.rpcclient.notify("setline", json!([lnum, text]))
     }
 
     pub fn edit(&self, goto_cmd: &Option<String>, path: impl AsRef<Path>) -> Fallible<()> {
         let path = path.as_ref().to_string_lossy();
-
-        let goto = goto_cmd.as_deref().unwrap_or("edit");
+        let goto = OptionDeref::as_deref(goto_cmd).unwrap_or("edit");
         self.rpcclient.notify("s:Edit", json!([goto, path]))?;
-
-        if path.starts_with("jdt://") {
-            self.command("setlocal buftype=nofile filetype=java noswapfile")?;
-
-            // TODO
-            // let result = self.java_classFileContents(&json!({
-            //     VimVar::LanguageId.to_key(): "java",
-            //     "uri": path,
-            // }))?;
-            // let content = match result {
-            //     Value::String(s) => s,
-            //     _ => bail!("Unexpected type: {:?}", result),
-            // };
-            // let lines: Vec<String> = content
-            //     .lines()
-            //     .map(std::string::ToString::to_string)
-            //     .collect();
-            // self.setline(1, &lines)?;
-        }
         Ok(())
     }
 
@@ -116,19 +182,22 @@ impl Vim {
         line_start: u64,
         line_end: u64,
         virtual_texts: &[VirtualText],
-    ) -> Fallible<i64> {
+    ) -> Fallible<i8> {
         self.rpcclient.call(
             "s:set_virtual_texts",
             json!([buf_id, ns_id, line_start, line_end, virtual_texts]),
         )
     }
-}
 
-// TODO: move to types.
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum RawMessage {
-    Notification(rpc::Notification),
-    MethodCall(rpc::MethodCall),
-    Output(rpc::Output),
+    pub fn set_signs(
+        &self,
+        filename: &str,
+        signs_to_add: &[Sign],
+        signs_to_delete: &[Sign],
+    ) -> Fallible<i8> {
+        self.rpcclient.call(
+            "s:set_signs",
+            json!([filename, signs_to_add, signs_to_delete]),
+        )
+    }
 }

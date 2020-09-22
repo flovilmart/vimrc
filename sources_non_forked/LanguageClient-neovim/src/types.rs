@@ -1,7 +1,9 @@
 use super::*;
 use crate::rpcclient::RpcClient;
+use crate::sign::Sign;
 use crate::viewport::Viewport;
 use crate::vim::Vim;
+use std::collections::BTreeMap;
 use std::sync::mpsc;
 
 pub type Fallible<T> = failure::Fallible<T>;
@@ -53,8 +55,6 @@ pub const NOTIFICATION__WindowProgress: &str = "window/progress";
 pub const NOTIFICATION__LanguageStatus: &str = "language/status";
 pub const REQUEST__ClassFileContents: &str = "java/classFileContents";
 
-pub const CommandsClient: &[&str] = &["java.apply.workspaceEdit"];
-
 // Vim variable names
 pub const VIM__ServerStatus: &str = "g:LanguageClient_serverStatus";
 pub const VIM__ServerStatusMessage: &str = "g:LanguageClient_serverStatusMessage";
@@ -71,8 +71,10 @@ impl SyncWrite for BufWriter<TcpStream> {}
 
 /// Rpc message id.
 pub type Id = u64;
-/// Langauge server id.
+/// Language server id.
 pub type LanguageId = Option<String>;
+/// Buffer id/handle.
+pub type Bufnr = i64;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Message {
@@ -89,7 +91,7 @@ pub enum Call {
 
 #[derive(Clone, Copy, Serialize)]
 pub struct HighlightSource {
-    pub buffer: u64,
+    pub buffer: Bufnr,
     pub source: u64,
 }
 
@@ -114,8 +116,9 @@ pub struct State {
     pub diagnostics: HashMap<String, Vec<Diagnostic>>,
     #[serde(skip_serializing)]
     pub line_diagnostics: HashMap<(String, u64), String>,
-    pub signs: HashMap<String, Vec<Sign>>,
-    pub signs_placed: HashMap<String, Vec<Sign>>,
+    pub sign_next_id: u64,
+    /// Active signs.
+    pub signs: HashMap<String, BTreeMap<u64, Sign>>,
     pub namespace_id: Option<i64>,
     pub highlight_source: Option<u64>,
     pub highlights: HashMap<String, Vec<Highlight>>,
@@ -132,8 +135,8 @@ pub struct State {
     pub is_nvim: bool,
     pub last_cursor_line: u64,
     pub last_line_diagnostic: String,
-    pub stashed_codeAction_commands: Vec<Command>,
-    pub viewport: Viewport,
+    pub stashed_codeAction_actions: Vec<CodeAction>,
+    pub viewports: HashMap<String, Viewport>,
 
     // User settings.
     pub serverCommands: HashMap<String, Vec<String>>,
@@ -145,6 +148,7 @@ pub struct State {
     pub diagnosticsList: DiagnosticsList,
     pub diagnosticsDisplay: HashMap<u64, DiagnosticsDisplay>,
     pub diagnosticsSignsMax: Option<u64>,
+    pub diagnostics_max_severity: DiagnosticSeverity,
     pub documentHighlightDisplay: HashMap<u64, DocumentHighlightDisplay>,
     pub windowLogMessageLevel: MessageType,
     pub settingsPath: String,
@@ -155,6 +159,7 @@ pub struct State {
     pub hoverPreview: HoverPreviewOption,
     pub completionPreferTextEdit: bool,
     pub use_virtual_text: bool,
+    pub echo_project_root: bool,
 
     pub loggingFile: Option<String>,
     pub loggingLevel: log::LevelFilter,
@@ -165,7 +170,7 @@ pub struct State {
 
 impl State {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(tx: crossbeam_channel::Sender<Call>) -> Fallible<State> {
+    pub fn new(tx: crossbeam_channel::Sender<Call>) -> Fallible<Self> {
         let logger = logger::init()?;
 
         let client = RpcClient::new(
@@ -176,7 +181,7 @@ impl State {
             tx.clone(),
         )?;
 
-        Ok(State {
+        Ok(Self {
             tx,
 
             clients: hashmap! {
@@ -192,8 +197,8 @@ impl State {
             text_documents_metadata: HashMap::new(),
             diagnostics: HashMap::new(),
             line_diagnostics: HashMap::new(),
+            sign_next_id: 75_000,
             signs: HashMap::new(),
-            signs_placed: HashMap::new(),
             namespace_id: None,
             highlight_source: None,
             highlights: HashMap::new(),
@@ -207,8 +212,8 @@ impl State {
             is_nvim: false,
             last_cursor_line: 0,
             last_line_diagnostic: " ".into(),
-            stashed_codeAction_commands: vec![],
-            viewport: Viewport::new(0, 0),
+            stashed_codeAction_actions: vec![],
+            viewports: HashMap::new(),
 
             serverCommands: HashMap::new(),
             autoStart: true,
@@ -219,6 +224,7 @@ impl State {
             diagnosticsList: DiagnosticsList::Quickfix,
             diagnosticsDisplay: DiagnosticsDisplay::default(),
             diagnosticsSignsMax: None,
+            diagnostics_max_severity: DiagnosticSeverity::Hint,
             documentHighlightDisplay: DocumentHighlightDisplay::default(),
             windowLogMessageLevel: MessageType::Warning,
             settingsPath: format!(".vim{}settings.json", std::path::MAIN_SEPARATOR),
@@ -229,6 +235,7 @@ impl State {
             hoverPreview: HoverPreviewOption::default(),
             completionPreferTextEdit: false,
             use_virtual_text: true,
+            echo_project_root: true,
             loggingFile: None,
             loggingLevel: log::LevelFilter::Warn,
             serverStderr: None,
@@ -326,11 +333,11 @@ pub struct DiagnosticsDisplay {
 }
 
 impl DiagnosticsDisplay {
-    pub fn default() -> HashMap<u64, DiagnosticsDisplay> {
+    pub fn default() -> HashMap<u64, Self> {
         let mut map = HashMap::new();
         map.insert(
             1,
-            DiagnosticsDisplay {
+            Self {
                 name: "Error".to_owned(),
                 texthl: "ALEError".to_owned(),
                 signText: "✖".to_owned(),
@@ -340,7 +347,7 @@ impl DiagnosticsDisplay {
         );
         map.insert(
             2,
-            DiagnosticsDisplay {
+            Self {
                 name: "Warning".to_owned(),
                 texthl: "ALEWarning".to_owned(),
                 signText: "⚠".to_owned(),
@@ -350,7 +357,7 @@ impl DiagnosticsDisplay {
         );
         map.insert(
             3,
-            DiagnosticsDisplay {
+            Self {
                 name: "Information".to_owned(),
                 texthl: "ALEInfo".to_owned(),
                 signText: "ℹ".to_owned(),
@@ -360,7 +367,7 @@ impl DiagnosticsDisplay {
         );
         map.insert(
             4,
-            DiagnosticsDisplay {
+            Self {
                 name: "Hint".to_owned(),
                 texthl: "ALEInfo".to_owned(),
                 signText: "➤".to_owned(),
@@ -373,94 +380,36 @@ impl DiagnosticsDisplay {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Sign {
-    pub id: u64,
-    pub line: u64,
-    pub text: String,
-    pub severity: Option<DiagnosticSeverity>,
-}
-
-impl Sign {
-    pub fn new(line: u64, text: String, severity: Option<DiagnosticSeverity>) -> Sign {
-        Sign {
-            id: Self::get_id(line, severity),
-            line,
-            text,
-            severity,
-        }
-    }
-
-    fn get_id(line: u64, severity: Option<DiagnosticSeverity>) -> u64 {
-        let base_id = 75_000;
-        base_id
-            + (line - 1) * 4
-            + severity
-                .unwrap_or(DiagnosticSeverity::Hint)
-                .to_int()
-                .unwrap_or(4)
-            - 1
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DocumentHighlightDisplay {
     pub name: String,
     pub texthl: String,
 }
 
 impl DocumentHighlightDisplay {
-    pub fn default() -> HashMap<u64, DocumentHighlightDisplay> {
+    pub fn default() -> HashMap<u64, Self> {
         let mut map = HashMap::new();
         map.insert(
             1,
-            DocumentHighlightDisplay {
+            Self {
                 name: "Text".to_owned(),
                 texthl: "SpellCap".to_owned(),
             },
         );
         map.insert(
             2,
-            DocumentHighlightDisplay {
+            Self {
                 name: "Read".to_owned(),
                 texthl: "SpellLocal".to_owned(),
             },
         );
         map.insert(
             3,
-            DocumentHighlightDisplay {
+            Self {
                 name: "Write".to_owned(),
                 texthl: "SpellRare".to_owned(),
             },
         );
         map
-    }
-}
-
-impl std::cmp::Ord for Sign {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.id.cmp(&other.id)
-    }
-}
-
-impl std::cmp::PartialOrd for Sign {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl std::cmp::PartialEq for Sign {
-    fn eq(&self, other: &Self) -> bool {
-        // Quick check whether sign should be updated.
-        self.text == other.text && self.severity == other.severity
-    }
-}
-
-impl std::cmp::Eq for Sign {}
-
-use std::hash::{Hash, Hasher};
-impl Hash for Sign {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
     }
 }
 
@@ -557,8 +506,10 @@ pub struct VimCompleteItem {
     pub icase: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dup: Option<u64>,
+    /// Deprecated. Use `user_data` instead.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub snippet: Option<String>,
+    /// Deprecated. Use `user_data` instead.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_snippet: Option<bool>,
     // NOTE: `user_data` can only be string in vim. So cannot specify concrete type here.
@@ -570,46 +521,52 @@ pub struct VimCompleteItem {
 pub struct VimCompleteItemUserData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lspitem: Option<CompletionItem>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub snippet: Option<String>,
 }
 
 impl VimCompleteItem {
-    pub fn from_lsp(
-        lspitem: &CompletionItem,
-        complete_position: Option<u64>,
-    ) -> Fallible<VimCompleteItem> {
+    pub fn from_lsp(lspitem: &CompletionItem, complete_position: Option<u64>) -> Fallible<Self> {
+        debug!(
+            "LSP CompletionItem to VimCompleteItem: {:?}, {:?}",
+            lspitem, complete_position
+        );
         let abbr = lspitem.label.clone();
-        let mut word = lspitem.insert_text.clone().unwrap_or_default();
-        if word.is_empty() {
+
+        let word = lspitem.insert_text.clone().unwrap_or_else(|| {
+            if lspitem.insert_text_format == Some(InsertTextFormat::Snippet)
+                || lspitem
+                    .text_edit
+                    .as_ref()
+                    .map(|text_edit| text_edit.new_text.is_empty())
+                    .unwrap_or(true)
+            {
+                return lspitem.label.clone();
+            }
+
             match (lspitem.text_edit.clone(), complete_position) {
-                (Some(text_edit), Some(complete_position)) => {
+                (Some(ref text_edit), Some(complete_position)) => {
                     // TextEdit range start might be different from vim expected completion start.
                     // From spec, TextEdit can only span one line, i.e., the current line.
                     if text_edit.range.start.character != complete_position {
-                        word = text_edit
+                        text_edit
                             .new_text
                             .get((complete_position as usize)..)
                             .and_then(|line| line.split_whitespace().next())
-                            .map_or_else(String::new, ToOwned::to_owned);
+                            .map_or_else(String::new, ToOwned::to_owned)
                     } else {
-                        word = text_edit.new_text.clone();
+                        text_edit.new_text.clone()
                     }
                 }
-                (Some(text_edit), _) => {
-                    word = text_edit.new_text.clone();
-                }
-                (_, _) => {
-                    word = lspitem.label.clone();
-                }
+                (Some(ref text_edit), _) => text_edit.new_text.clone(),
+                (_, _) => lspitem.label.clone(),
             }
-        }
+        });
 
-        let is_snippet;
         let snippet;
         if lspitem.insert_text_format == Some(InsertTextFormat::Snippet) {
-            is_snippet = Some(true);
             snippet = Some(word.clone());
         } else {
-            is_snippet = None;
             snippet = None;
         };
 
@@ -620,9 +577,10 @@ impl VimCompleteItem {
 
         let user_data = VimCompleteItemUserData {
             lspitem: Some(lspitem.clone()),
+            snippet: snippet.clone(),
         };
 
-        Ok(VimCompleteItem {
+        Ok(Self {
             word,
             abbr,
             icase: Some(1),
@@ -634,8 +592,8 @@ impl VimCompleteItem {
                 .replace("\n", " "),
             info,
             kind: lspitem.kind.map(|k| format!("{:?}", k)).unwrap_or_default(),
+            is_snippet: Some(snippet.is_some()),
             snippet,
-            is_snippet,
             user_data: Some(serde_json::to_string(&user_data)?),
         })
     }
@@ -722,7 +680,7 @@ impl ToString for Hover {
             HoverContents::Scalar(ref ms) => ms.to_string(),
             HoverContents::Array(ref vec) => vec
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<_>>()
                 .join("\n"),
             HoverContents::Markup(ref mc) => mc.to_string(),
@@ -761,7 +719,7 @@ impl ToDisplay for lsp::MarkedString {
             MarkedString::String(ref s) => s,
             MarkedString::LanguageString(ref ls) => &ls.value,
         };
-        s.lines().map(|i| i.to_string()).collect()
+        s.lines().map(String::from).collect()
     }
 
     fn vim_filetype(&self) -> Option<String> {
@@ -796,7 +754,7 @@ impl ToDisplay for Hover {
                         let mut buf = Vec::new();
 
                         buf.push(format!("```{}", ls.language));
-                        buf.extend(ls.value.lines().map(|i| i.to_string()));
+                        buf.extend(ls.value.lines().map(String::from));
                         buf.push("```".to_string());
 
                         buf
@@ -820,7 +778,7 @@ impl ToDisplay for Hover {
 
 impl ToDisplay for str {
     fn to_display(&self) -> Vec<String> {
-        self.lines().map(|s| s.to_string()).collect()
+        self.lines().map(String::from).collect()
     }
 }
 
@@ -847,7 +805,7 @@ impl LinesLen for Hover {
     fn lines_len(&self) -> usize {
         match self.contents {
             HoverContents::Scalar(ref c) => c.lines_len(),
-            HoverContents::Array(ref arr) => arr.iter().map(|i| i.lines_len()).sum(),
+            HoverContents::Array(ref arr) => arr.iter().map(LinesLen::lines_len).sum(),
             HoverContents::Markup(ref c) => c.lines_len(),
         }
     }
@@ -896,61 +854,9 @@ impl ToUsize for u64 {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub enum VimVar {
-    Bufnr,
-    LanguageId,
-    Filename,
-    Line,
-    Character,
-    Viewport,
-    Text,
-    Cword,
-    NewName,
-    GotoCmd,
-    Handle,
-    IncludeDeclaration,
-}
-
 pub trait VimExp {
     fn to_key(&self) -> String;
     fn to_exp(&self) -> String;
-}
-
-impl VimExp for VimVar {
-    fn to_key(&self) -> String {
-        match *self {
-            VimVar::Bufnr => "bufnr",
-            VimVar::LanguageId => "languageId",
-            VimVar::Filename => "filename",
-            VimVar::Line => "line",
-            VimVar::Character => "character",
-            VimVar::Viewport => "viewport",
-            VimVar::Text => "text",
-            VimVar::Cword => "cword",
-            VimVar::NewName => "newName",
-            VimVar::GotoCmd => "gotoCmd",
-            VimVar::Handle => "handle",
-            VimVar::IncludeDeclaration => "includeDeclaration",
-        }
-        .to_owned()
-    }
-
-    fn to_exp(&self) -> String {
-        match *self {
-            VimVar::Bufnr => "bufnr('')",
-            VimVar::LanguageId => "&filetype",
-            VimVar::Filename => "LSP#filename()",
-            VimVar::Line => "LSP#line()",
-            VimVar::Character => "LSP#character()",
-            VimVar::Viewport => "LSP#viewport()",
-            VimVar::Text => "LSP#text()",
-            VimVar::Cword => "expand('<cword>')",
-            VimVar::NewName | VimVar::GotoCmd => "v:null",
-            VimVar::Handle | VimVar::IncludeDeclaration => "v:true",
-        }
-        .to_owned()
-    }
 }
 
 impl<'a> VimExp for &'a str {
@@ -1128,7 +1034,7 @@ impl FromLSP<SymbolInformation> for QuickfixEntry {
     fn from_lsp(sym: &SymbolInformation) -> Fallible<Self> {
         let start = sym.location.range.start;
 
-        Ok(QuickfixEntry {
+        Ok(Self {
             filename: sym.location.uri.filepath()?.to_string_lossy().into_owned(),
             lnum: start.line + 1,
             col: Some(start.character + 1),
@@ -1139,9 +1045,70 @@ impl FromLSP<SymbolInformation> for QuickfixEntry {
     }
 }
 
+impl FromLSP<Vec<lsp::SymbolInformation>> for Vec<QuickfixEntry> {
+    fn from_lsp(symbols: &Vec<lsp::SymbolInformation>) -> Fallible<Self> {
+        symbols.iter().map(QuickfixEntry::from_lsp).collect()
+    }
+}
+
+impl FromLSP<Vec<lsp::DocumentSymbol>> for Vec<QuickfixEntry> {
+    fn from_lsp(document_symbols: &Vec<lsp::DocumentSymbol>) -> Fallible<Self> {
+        let mut symbols = Vec::new();
+
+        fn walk_document_symbol(
+            buffer: &mut Vec<QuickfixEntry>,
+            parent: Option<&str>,
+            ds: &lsp::DocumentSymbol,
+        ) {
+            let start = ds.selection_range.start;
+
+            let name = if let Some(parent) = parent {
+                format!("{}::{}", parent, ds.name)
+            } else {
+                ds.name.clone()
+            };
+
+            buffer.push(QuickfixEntry {
+                filename: "".to_string(),
+                lnum: start.line + 1,
+                col: Some(start.character + 1),
+                text: Some(name),
+                nr: None,
+                typ: None,
+            });
+
+            if let Some(children) = &ds.children {
+                for child in children {
+                    walk_document_symbol(buffer, Some(&ds.name), child);
+                }
+            }
+        }
+
+        for ds in document_symbols {
+            walk_document_symbol(&mut symbols, None, ds);
+        }
+
+        Ok(symbols)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RawMessage {
+    Notification(rpc::Notification),
+    MethodCall(rpc::MethodCall),
+    Output(rpc::Output),
+}
+
 #[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct VirtualText {
     pub line: u64,
     pub text: String,
     pub hl_group: String,
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct WorkspaceEditWithCursor {
+    pub workspaceEdit: WorkspaceEdit,
+    pub cursorPosition: Option<TextDocumentPositionParams>,
 }
