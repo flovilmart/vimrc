@@ -31,7 +31,7 @@ I recommend reading the docs of these plugins to understand them better. Each pl
 ### Additional features
 
 * [multiple-cursors]('https://github.com/terryma/vim-multiple-cursors')
-
+* [tmux-navigator]('https://github.com/christoomey/vim-tmux-navigator')
 
 ## Key Mappings
 

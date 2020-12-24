@@ -21,6 +21,7 @@ call plug#begin('~/.vim_runtime/plugged')
 
   " Additional features
   Plug 'terryma/vim-multiple-cursors'
+  Plug 'christoomey/vim-tmux-navigator'
 
 call plug#end()
 
