@@ -12,6 +12,7 @@ I recommend reading the docs of these plugins to understand them better. Each pl
 
 * [solarized]('https://github.com/altercation/vim-colors-solarized')
 * [nerdtree]('https://github.com/preservim/nerdtree')
+* [devicons]('https://github.com/ryanoasis/vim-devicons')
 
 ### Searching
 
