@@ -7,15 +7,6 @@
 set runtimepath+=~/.vim-plugins/LanguageClient-neovim
 
 """"""""""""""""""""""""""""""
-" => Load pathogen paths
-""""""""""""""""""""""""""""""
-let s:vim_runtime = expand('<sfile>:p:h')."/.."
-call pathogen#infect(s:vim_runtime.'/sources_forked/{}')
-call pathogen#infect(s:vim_runtime.'/sources_non_forked/{}')
-call pathogen#infect(s:vim_runtime.'/my_plugins/{}')
-call pathogen#helptags()
-
-""""""""""""""""""""""""""""""
 " => bufExplorer plugin
 """"""""""""""""""""""""""""""
 let g:bufExplorerDefaultHelp=0
@@ -43,6 +34,11 @@ nmap <c-n> <Plug>yankstack_substitute_newer_paste
 """"""""""""""""""""""""""""""
 " => FZF
 """"""""""""""""""""""""""""""
+" FZF key bindings
+let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-i': 'split',
+  \ 'ctrl-v': 'vsplit' }
 set rtp+=/usr/local/opt/fzf
 nmap ; :Buffers<CR>
 nmap <Leader>o :Files<CR>
@@ -50,10 +46,6 @@ nmap <Leader>r :Tags<CR>
 
 nmap <Leader>a :Ag <CR>
 nmap <Leader>f :Ag<CR>
-nmap <M-k>    :Ack! "\b<cword>\b" <CR>
-nmap <Esc>k   :Ack! "\b<cword>\b" <CR>
-nmap <M-S-k>  :Ggrep! "\b<cword>\b" <CR>
-nmap <Esc>K   :Ggrep! "\b<cword>\b" <CR>
 
 """"""""""""""""""""""""""""""
 " => LanguageClient
@@ -214,3 +206,6 @@ let g:gitgutter_enabled=1
 set updatetime=100
 
 nnoremap <silent> <leader>d :GitGutterToggle<cr>
+
+let g:gitgutter_override_sign_column_highlight = 0
+
