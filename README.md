@@ -2,7 +2,12 @@
 
 ## Fonts
 
-I recommend using [Fira Code](https://github.com/flovilmart/dotfiles/tree/master/fonts) (it's an open-source and awesome font that can make your code beautiful)..
+I recommend using [Fira Code](https://github.com/ryanoasis/nerd-fonts#option-4-homebrew-fonts) (it's an open-source and awesome font that can make your code beautiful)..
+
+You can install through homebrew:
+
+  brew tap homebrew/cask-fonts
+  brew install --cask font-fira-code-nerd-font
 
 ## Included Plugins
 
