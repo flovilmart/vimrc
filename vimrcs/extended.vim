@@ -11,7 +11,7 @@
 " Set font according to system
 
 if has("mac") || has("macunix")
-    set gfn=Fira\ Code:h14,Hack:h14,Source\ Code\ Pro:h15,Menlo:h15
+    set guifont=Fira\ Code:h14,Hack:h14,Source\ Code\ Pro:h15,Menlo:h15
 elseif has("win16") || has("win32")
     set gfn=Fira\ Code:h14,Source\ Code\ Pro:h12,Bitstream\ Vera\ Sans\ Mono:h11
 elseif has("gui_gtk2")
@@ -34,6 +34,13 @@ set background=dark
 let g:solarized_termcolors=256
 let g:solarized_termtrans=1
 colorscheme solarized
+
+highlight clear SignColumn
+highlight SignColumn ctermbg=none 
+highlight GitGutterAdd ctermfg=2 ctermbg=none
+highlight GitGutterChange ctermfg=3 ctermbg=none
+highlight GitGutterDelete ctermfg=1 ctermbg=none
+highlight GitGutterChangeDelete ctermfg=4 ctermbg=none
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Fast editing and reloading of vimrc configs
@@ -67,7 +74,7 @@ cno $c e <C-\>eCurrentFileDir("e")<cr>
 cno $q <C-\>eDeleteTillSlash()<cr>
 
 " Bash like keys for the command line
-cnoremap <C-A>		<Home>
+
 cnoremap <C-E>		<End>
 cnoremap <C-K>		<C-U>
 
@@ -128,9 +135,6 @@ endif
 
 " When you press gv you Ack after the selected text
 vnoremap <silent> gv :call VisualSelection('gv', '')<CR>
-
-" Open Ack and put the cursor in the right position
-map <leader>g :Ack 
 
 " When you press <leader>r you can search and replace the selected text
 vnoremap <silent> <leader>r :call VisualSelection('replace', '')<CR>

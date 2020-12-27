@@ -7,15 +7,6 @@
 set runtimepath+=~/.vim-plugins/LanguageClient-neovim
 
 """"""""""""""""""""""""""""""
-" => Load pathogen paths
-""""""""""""""""""""""""""""""
-let s:vim_runtime = expand('<sfile>:p:h')."/.."
-call pathogen#infect(s:vim_runtime.'/sources_forked/{}')
-call pathogen#infect(s:vim_runtime.'/sources_non_forked/{}')
-call pathogen#infect(s:vim_runtime.'/my_plugins/{}')
-call pathogen#helptags()
-
-""""""""""""""""""""""""""""""
 " => bufExplorer plugin
 """"""""""""""""""""""""""""""
 let g:bufExplorerDefaultHelp=0
@@ -43,6 +34,11 @@ nmap <c-n> <Plug>yankstack_substitute_newer_paste
 """"""""""""""""""""""""""""""
 " => FZF
 """"""""""""""""""""""""""""""
+" FZF key bindings
+let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-i': 'split',
+  \ 'ctrl-v': 'vsplit' }
 set rtp+=/usr/local/opt/fzf
 nmap ; :Buffers<CR>
 nmap <Leader>o :Files<CR>
@@ -50,25 +46,6 @@ nmap <Leader>r :Tags<CR>
 
 nmap <Leader>a :Ag <CR>
 nmap <Leader>f :Ag<CR>
-nmap <M-k>    :Ack! "\b<cword>\b" <CR>
-nmap <Esc>k   :Ack! "\b<cword>\b" <CR>
-nmap <M-S-k>  :Ggrep! "\b<cword>\b" <CR>
-nmap <Esc>K   :Ggrep! "\b<cword>\b" <CR>
-
-""""""""""""""""""""""""""""""
-" => LanguageClient
-""""""""""""""""""""""""""""""
-" set hidden
-" 
-" let g:LanguageClient_serverCommands = {
-"     \ 'javascript': ['javascript-typescript-stdio'],
-"     \ }
-" 
-" set completefunc=LanguageClient#complete
-" nnoremap <silent> K :call LanguageClient#textDocument_hover()<CR>
-" nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-" nnoremap <silent> fu :call LanguageClient#textDocument_references()<CR>
-" nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
 
 """"""""""""""""""""""""""""""
 " => ZenCoding
@@ -187,10 +164,12 @@ let g:go_fmt_command = "goimports"
 " => Syntastic (syntax checker)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:ale_linters = {
-\   'javascript': ['tsserver','eslint', 'prettier', 'flow'],
+\   'javascript': ['eslint', 'prettier'],
 \   'python': ['flake8'],
 \   'go': ['go', 'golint', 'errcheck']
 \}
+
+let b:ale_fixers = {'javascript': ['prettier', 'eslint']}
 
 nmap <silent> <leader>a <Plug>(ale_next_wrap)
 
@@ -202,6 +181,7 @@ let g:ale_sign_column_always = 1
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_enter = 1
 let g:ale_lint_on_save = 1
+let g:ale_fix_on_save = 1
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_tsserver_use_global = 1
 map <C-]> :ALEGoToDefinition<cr>
@@ -214,3 +194,6 @@ let g:gitgutter_enabled=1
 set updatetime=100
 
 nnoremap <silent> <leader>d :GitGutterToggle<cr>
+
+let g:gitgutter_override_sign_column_highlight = 0
+
