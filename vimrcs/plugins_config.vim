@@ -48,21 +48,6 @@ nmap <Leader>a :Ag <CR>
 nmap <Leader>f :Ag<CR>
 
 """"""""""""""""""""""""""""""
-" => LanguageClient
-""""""""""""""""""""""""""""""
-set hidden
-
-let g:LanguageClient_serverCommands = {
-    \ 'javascript': ['javascript-typescript-stdio'],
-    \ }
-
-set completefunc=LanguageClient#complete
-nnoremap <silent> K :call LanguageClient#textDocument_hover()<CR>
-nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-nnoremap <silent> fu :call LanguageClient#textDocument_references()<CR>
-nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
-
-""""""""""""""""""""""""""""""
 " => ZenCoding
 """"""""""""""""""""""""""""""
 " Enable all functions in all modes
@@ -179,10 +164,12 @@ let g:go_fmt_command = "goimports"
 " => Syntastic (syntax checker)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:ale_linters = {
-\   'javascript': ['tsserver','eslint', 'prettier', 'flow'],
+\   'javascript': ['eslint', 'prettier'],
 \   'python': ['flake8'],
 \   'go': ['go', 'golint', 'errcheck']
 \}
+
+let b:ale_fixers = {'javascript': ['prettier', 'eslint']}
 
 nmap <silent> <leader>a <Plug>(ale_next_wrap)
 
@@ -194,6 +181,7 @@ let g:ale_sign_column_always = 1
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_enter = 1
 let g:ale_lint_on_save = 1
+let g:ale_fix_on_save = 1
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_tsserver_use_global = 1
 map <C-]> :ALEGoToDefinition<cr>

@@ -15,8 +15,10 @@ call plug#begin('~/.vim_runtime/plugged')
   Plug 'airblade/vim-gitgutter'
   
   " Language support
-  Plug 'sheerun/vim-polyglot'
+  " Plug 'sheerun/vim-polyglot'
+  Plug 'dense-analysis/ale'
   Plug 'neoclide/coc.nvim', {'branch': 'release' }
+  Plug 'vim-ruby/vim-ruby'
   Plug 'tpope/vim-rails'
 
   " Additional features
