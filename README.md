@@ -211,6 +211,6 @@ Cope mappings:
 
 ## How to uninstall
 Just do following:
-* Remove `~/.vim_runtime`
-* Remove any lines that reference `.vim_runtime` in your `~/.vimrc`
+* Remove `~/.vim`
+* Remove any lines that reference `.vim` in your `~/.vimrc`
 *
