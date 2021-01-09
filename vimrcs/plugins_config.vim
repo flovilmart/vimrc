@@ -156,15 +156,20 @@ let g:go_fmt_command = "goimports"
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"
 " => Syntastic (syntax checker)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:ale_linters = {
 \   'javascript': ['eslint', 'prettier'],
 \   'python': ['flake8'],
+\   'ruby': ['rubocop'],
 \   'go': ['go', 'golint', 'errcheck']
 \}
 
-let b:ale_fixers = {'javascript': ['prettier', 'eslint']}
+let b:ale_fixers = {
+\  '*': ['remove_trailing_lines', 'trim_whitespace'],
+\  'javascript': ['prettier', 'eslint']
+\}
 
 nmap <silent> <leader>a <Plug>(ale_next_wrap)
 
@@ -179,6 +184,7 @@ let g:ale_disable_lsp = 1
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_enter = 1
 let g:ale_lint_on_save = 1
+let g:ale_linters_explicit = 1
 let g:ale_fix_on_save = 1
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_tsserver_use_global = 1
