@@ -2,23 +2,6 @@ let g:airline_theme='solarized'
 let g:airline#extensions#ale#enabled = 1
 
 """"""""""""""""""""""""""""""
-" => bufExplorer plugin
-""""""""""""""""""""""""""""""
-let g:bufExplorerDefaultHelp=0
-let g:bufExplorerShowRelativePath=1
-let g:bufExplorerFindActive=1
-let g:bufExplorerSortBy='name'
-map <leader>o :BufExplorer<cr>
-
-
-""""""""""""""""""""""""""""""
-" => MRU plugin
-""""""""""""""""""""""""""""""
-let MRU_Max_Entries = 400
-map <leader>f :MRU<CR>
-
-
-""""""""""""""""""""""""""""""
 " => YankStack
 """"""""""""""""""""""""""""""
 let g:yankstack_yank_keys = ['y', 'd']
@@ -37,9 +20,8 @@ let g:fzf_action = {
 set rtp+=/usr/local/opt/fzf
 nmap ; :Buffers<CR>
 nmap <Leader>o :Files<CR>
-nmap <Leader>r :Tags<CR>
 
-nmap <Leader>a :Ag <CR>
+nmap <Leader>r :Ag <C-R><C-W> *<CR>
 nmap <Leader>f :Ag<CR>
 
 """"""""""""""""""""""""""""""
@@ -66,12 +48,12 @@ set grepprg=/bin/grep\ -nH
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Nerd Tree
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-autocmd vimenter * NERDTree
+" autocmd vimenter * NERDTree
 
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
-autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+" autocmd StdinReadPre * let s:std_in=1
+" autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+" autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
+" autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
 let g:NERDTreeWinPos = "right"
 let NERDTreeShowHidden=1
@@ -106,7 +88,7 @@ let g:multi_cursor_quit_key            = '<Esc>'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => surround.vim config
-" Annotate strings with gettext 
+" Annotate strings with gettext
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 vmap Si S(i_<esc>f)
 au FileType mako vmap Si S"i${ _(<esc>2f"a) }<esc>
@@ -168,15 +150,16 @@ let g:ale_linters = {
 
 let b:ale_fixers = {
 \  '*': ['remove_trailing_lines', 'trim_whitespace'],
-\  'javascript': ['prettier', 'eslint']
+\  'javascript': ['prettier', 'eslint'],
+\  'ruby': ['rubocop']
 \}
 
 nmap <silent> <leader>a <Plug>(ale_next_wrap)
 
 " Disabling highlighting
-let g:ale_set_highlights = 0
+let g:ale_set_highlights = 1
 let g:ale_sign_column_always = 1
-let g:ale_open_list = 1
+let g:ale_open_list = 0
 
 " Compat with coc.vim
 let g:ale_disable_lsp = 1
@@ -201,3 +184,35 @@ nnoremap <silent> <leader>d :GitGutterToggle<cr>
 
 let g:gitgutter_override_sign_column_highlight = 0
 
+
+" vim-test
+"
+function! TransformExecRubyApp(cmd) abort
+  return 'docker-compose exec -e RAILS_ENV=test app sh -c '.shellescape(a:cmd)
+endfunction
+function! TransformRubyApp(cmd) abort
+  return 'docker-compose run --rm -e RAILS_ENV=test --entrypoint='.shellescape(a:cmd). ' app'
+endfunction
+function! DockerComposeExec(cmd, app) abort
+    return 'docker-compose exec '.a:app.' sh -c '.shellescape(a:cmd)
+endfunction
+
+function! TransformDockerCompose(cmd) abort
+  if getcwd() =~ "hodor"
+    return DockerComposeExec(a:cmd, "hodor")
+  endif
+  if getcwd() =~ "flatbook"
+    return DockerComposeExec(a:cmd, "flatbook")
+  endif
+  return TransformRubyApp(a:cmd)
+endfunction
+
+let g:test#custom_transformations = {'do': function('TransformDockerCompose')}
+let g:test#transformation = 'do'
+let test#strategy = "vimux"
+
+nmap <silent> t<C-n> :TestNearest<CR>
+nmap <silent> t<C-f> :TestFile<CR>
+nmap <silent> t<C-s> :TestSuite<CR>
+nmap <silent> t<C-l> :TestLast<CR>
+nmap <silent> t<C-g> :TestVisit<CR>

@@ -28,6 +28,8 @@ call plug#begin('~/.vim/plugged')
   Plug 'terryma/vim-multiple-cursors'
   Plug 'christoomey/vim-tmux-navigator'
   Plug 'ryanoasis/vim-devicons'
+  Plug 'vim-test/vim-test'
+  Plug 'preservim/vimux'
 
 call plug#end()
 
