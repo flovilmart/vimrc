@@ -80,3 +80,7 @@ set suffixesadd+=.js
 set suffixesadd+=.rb
 set path+=.
 
+""""""""""""""""""""""""""""""
+" => Go section
+""""""""""""""""""""""""""""""
+autocmd FileType go setl tabstop=4|setl shiftwidth=4|setl softtabstop=0 noexpandtab

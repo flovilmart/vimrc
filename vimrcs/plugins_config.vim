@@ -143,14 +143,17 @@ let g:go_fmt_command = "goimports"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:ale_linters = {
 \   'javascript': ['eslint', 'prettier'],
+\   'typescript': ['eslint', 'prettier'],
 \   'python': ['flake8'],
 \   'ruby': ['rubocop'],
 \   'go': ['go', 'golint', 'errcheck']
 \}
 
-let b:ale_fixers = {
+let g:ale_fixers = {
 \  '*': ['remove_trailing_lines', 'trim_whitespace'],
 \  'javascript': ['prettier', 'eslint'],
+\  'typescript': ['prettier', 'eslint'],
+\  'go': ['gofmt'],
 \  'ruby': ['rubocop']
 \}
 
@@ -193,12 +196,19 @@ endfunction
 function! TransformRubyApp(cmd) abort
   return 'docker-compose run --rm -e RAILS_ENV=test --entrypoint='.shellescape(a:cmd). ' app'
 endfunction
+function! DockerComposeRun(cmd) abort
+  return 'docker-compose run --rm -e RAILS_ENV=test --entrypoint='.shellescape(a:cmd). ' app'
+endfunction
 function! DockerComposeExec(cmd, app) abort
     return 'docker-compose exec '.a:app.' sh -c '.shellescape(a:cmd)
 endfunction
 
 function! TransformDockerCompose(cmd) abort
+  if getcwd() =~ "connected_home_service"
+    return DockerComposeRun(a:cmd)
+  endif
   if getcwd() =~ "hodor"
+    return DockerComposeRun(a:cmd)
     return DockerComposeExec(a:cmd, "hodor")
   endif
   if getcwd() =~ "flatbook"
