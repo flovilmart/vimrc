@@ -17,6 +17,7 @@ let g:fzf_action = {
   \ 'ctrl-t': 'tab split',
   \ 'ctrl-i': 'split',
   \ 'ctrl-v': 'vsplit' }
+let g:fzf_history_dir = '~/.fzf_history/'
 set rtp+=/usr/local/opt/fzf
 nmap ; :Buffers<CR>
 nmap <Leader>o :Files<CR>
@@ -168,10 +169,10 @@ let g:ale_open_list = 0
 let g:ale_disable_lsp = 1
 " Only run linting when saving the file
 let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_enter = 1
-let g:ale_lint_on_save = 1
+let g:ale_lint_on_enter = 0
+let g:ale_lint_on_save = 0
 let g:ale_linters_explicit = 1
-let g:ale_fix_on_save = 1
+let g:ale_fix_on_save = 0
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_tsserver_use_global = 1
 map <C-]> :ALEGoToDefinition<cr>
@@ -205,10 +206,10 @@ endfunction
 
 function! TransformDockerCompose(cmd) abort
   if getcwd() =~ "connected_home_service"
-    return DockerComposeRun(a:cmd)
+    return TransformExecRubyApp(a:cmd)
   endif
   if getcwd() =~ "hodor"
-    return DockerComposeRun(a:cmd)
+    " return DockerComposeRun(a:cmd)
     return DockerComposeExec(a:cmd, "hodor")
   endif
   if getcwd() =~ "flatbook"
