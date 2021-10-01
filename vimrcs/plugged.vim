@@ -30,5 +30,6 @@ call plug#begin('~/.vim/plugged')
   Plug 'ryanoasis/vim-devicons'
   Plug 'vim-test/vim-test'
   Plug 'preservim/vimux'
+  Plug 'ap/vim-css-color'
 
 call plug#end()
