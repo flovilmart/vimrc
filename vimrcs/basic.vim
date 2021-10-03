@@ -65,6 +65,8 @@ set so=7
 " Avoid garbled characters in Chinese language windows OS
 let $LANG='en' 
 set langmenu=en
+" Ensure we use zsh as an internal shell otherwise, fzf breaks
+set shell=/bin/zsh
 source $VIMRUNTIME/delmenu.vim
 source $VIMRUNTIME/menu.vim
 
@@ -143,10 +145,7 @@ if $COLORTERM == 'gnome-terminal'
     set t_Co=256
 endif
 
-try
-    colorscheme desert
-catch
-endtry
+colorscheme wombat
 
 set background=dark
 

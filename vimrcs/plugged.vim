@@ -4,6 +4,7 @@ call plug#begin('~/.vim/plugged')
 
   " Look and feel
   Plug 'altercation/vim-colors-solarized'
+  Plug 'sheerun/vim-wombat-scheme'
 
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
@@ -13,7 +14,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'junegunn/fzf.vim'
 
   " Git
-  Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-fugitive' 
   Plug 'tpope/vim-rhubarb'
   Plug 'airblade/vim-gitgutter'
 
@@ -25,11 +26,14 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-rails'
 
   " Additional features
-  Plug 'terryma/vim-multiple-cursors'
+  Plug 'mg979/vim-visual-multi'
   Plug 'christoomey/vim-tmux-navigator'
   Plug 'ryanoasis/vim-devicons'
   Plug 'vim-test/vim-test'
   Plug 'preservim/vimux'
+
+  " Syntax coloring
   Plug 'ap/vim-css-color'
+  Plug 'cespare/vim-toml', { 'branch': 'main' }
 
 call plug#end()
