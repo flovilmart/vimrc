@@ -1,4 +1,4 @@
-let g:airline_theme='wombat'
+let g:airline_theme='solarized'
 let g:airline#extensions#ale#enabled = 1
 
 """"""""""""""""""""""""""""""
@@ -45,31 +45,11 @@ snor <c-j> <esc>i<right><c-r>=snipMate#TriggerSnippet()<cr>
 let Grep_Skip_Dirs = 'RCS CVS SCCS .svn generated'
 set grepprg=/bin/grep\ -nH
 
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Nerd Tree
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" autocmd vimenter * NERDTree
-
-" autocmd StdinReadPre * let s:std_in=1
-" autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
-" autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
-" autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
-
-let g:NERDTreeWinPos = "right"
-let NERDTreeShowHidden=1
-let NERDTreeIgnore = ['\.pyc$', '__pycache__']
-let g:NERDTreeWinSize=35
-map <leader>nn :NERDTreeToggle<cr>
-map <leader>nb :NERDTreeFromBookmark<Space>
-
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => nerdtree-tabs
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:nerdtree_tabs_open_on_console_startup=1
-map <leader>nf :NERDTreeTabsFind<cr>
-
+"""""""""""""""""""""""""""""
+"
+let g:netrw_liststyle = 3
+let g:netrw_banner = 0
+let g:netrw_sortsequence = '[\/]$,*'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => surround.vim config
@@ -170,7 +150,8 @@ set updatetime=100
 
 nnoremap <silent> <leader>d :GitGutterToggle<cr>
 
-let g:gitgutter_override_sign_column_highlight = 0
+let g:gitgutter_override_sign_column_highlight = 1
+highlight SignColumn guibg=lightgray
 
 
 " vim-test
