@@ -47,7 +47,7 @@ set grepprg=/bin/grep\ -nH
 
 """""""""""""""""""""""""""""
 "
-let g:netrw_liststyle = 3
+let g:netrw_liststyle = 0
 let g:netrw_banner = 0
 let g:netrw_sortsequence = '[\/]$,*'
 
@@ -124,11 +124,15 @@ let g:ale_fixers = {
 
 nmap <silent> <leader>a <Plug>(ale_next_wrap)
 
+lua << EOF
+require'lspconfig'.tsserver.setup{}
+EOF
+
 " Disabling highlighting
 let g:ale_set_highlights = 1
 let g:ale_sign_column_always = 1
 let g:ale_open_list = 0
-
+""
 " Compat with coc.vim
 let g:ale_disable_lsp = 1
 " Only run linting when saving the file
@@ -136,7 +140,7 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_enter = 0
 let g:ale_lint_on_save = 0
 let g:ale_linters_explicit = 1
-let g:ale_fix_on_save = 0
+let g:ale_fix_on_save = 1
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_tsserver_use_global = 1
 map <C-]> :ALEGoToDefinition<cr>
@@ -166,12 +170,18 @@ function! DockerComposeRun(cmd) abort
   return 'docker-compose run --rm -e RAILS_ENV=test --entrypoint='.shellescape(a:cmd). ' app'
 endfunction
 function! DockerComposeExec(cmd, app) abort
-    return 'docker-compose exec '.a:app.' sh -c '.shellescape(a:cmd)
+  return 'docker-compose exec -e RAILS_ENV=test '.a:app.' sh -c '.shellescape(a:cmd)
 endfunction
 
 function! TransformDockerCompose(cmd) abort
+  if empty(glob("docker-compose.yml"))
+    return a:cmd
+  endif
+  if getcwd() =~ "app-messaging-service"
+    return DockerComposeExec(a:cmd, "app-messaging-service")
+  endif
   if getcwd() =~ "connected_home_service"
-    return TransformExecRubyApp(a:cmd)
+    return DockerComposeExec(a:cmd, "app")
   endif
   if getcwd() =~ "hodor"
     " return DockerComposeRun(a:cmd)
@@ -186,7 +196,13 @@ endfunction
 let g:test#custom_transformations = {'do': function('TransformDockerCompose')}
 let g:test#transformation = 'do'
 let test#strategy = "vimux"
-
+let test#preserve_screen = 0
+let test#echo_command = 0
+let g:test#javascript#runner = 'jest'
+let test#javascript#patterns = {
+  \ 'test': ['\v^\s*%(it|test)\s*[( ]\s*%("|''|`)(.*)%("|''|`)'],
+  \ 'namespace': ['\v^\s*%(describe|suite|context)\s*[( ]\s*%("|''|`)(.*)%("|''|`)'],
+\}
 nmap <silent> t<C-n> :TestNearest<CR>
 nmap <silent> t<C-f> :TestFile<CR>
 nmap <silent> t<C-s> :TestSuite<CR>

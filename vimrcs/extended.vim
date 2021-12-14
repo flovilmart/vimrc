@@ -1,5 +1,5 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Important: 
+" Important:
 "       This requries that you install https://github.com/amix/vimrc !
 "
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -36,7 +36,7 @@ let g:solarized_termtrans=1
 colorscheme solarized
 
 highlight clear SignColumn
-highlight SignColumn ctermbg=none 
+highlight SignColumn ctermbg=none
 highlight GitGutterAdd ctermfg=2 ctermbg=none
 highlight GitGutterChange ctermfg=3 ctermbg=none
 highlight GitGutterDelete ctermfg=1 ctermbg=none
@@ -50,11 +50,15 @@ autocmd! bufwritepost ~/.vim/my_configs.vim source ~/.vim/my_configs.vim
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Turn persistent undo on 
+" => Turn persistent undo on
 "    means that you can undo even when you close a buffer/VIM
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 try
+  if has('nvim')
+    set undodir=~/.vim/temp_dirs/undodir_nvim
+  else
     set undodir=~/.vim/temp_dirs/undodir
+  endif
     set undofile
 catch
 endtry
@@ -70,7 +74,7 @@ cno $j e ./
 cno $c e <C-\>eCurrentFileDir("e")<cr>
 
 " $q is super useful when browsing on the command line
-" it deletes everything until the last slash 
+" it deletes everything until the last slash
 cno $q <C-\>eDeleteTillSlash()<cr>
 
 " Bash like keys for the command line
@@ -175,7 +179,7 @@ func! DeleteTillSlash()
         else
             let g:cmd_edited = substitute(g:cmd, "\\(.*\[/\]\\).*/", "\\1", "")
         endif
-    endif   
+    endif
 
     return g:cmd_edited
 endfunc
@@ -216,4 +220,3 @@ endfunction
 function! Indent()
   call Preserve('normal gg=G')
 endfunction
-
