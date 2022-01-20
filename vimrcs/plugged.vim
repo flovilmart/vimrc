@@ -25,8 +25,15 @@ call plug#begin('~/.vim/plugged')
   " disable if nvim
   if has('nvim')
     Plug 'neovim/nvim-lspconfig'
+    Plug 'neovim/nvim-lspconfig'
+    Plug 'hrsh7th/cmp-nvim-lsp'
+    Plug 'hrsh7th/cmp-buffer'
+    Plug 'hrsh7th/cmp-path'
+    Plug 'hrsh7th/cmp-cmdline'
+    Plug 'hrsh7th/nvim-cmp'
+    Plug 'hrsh7th/vim-vsnip'
   else
-    Plug 'neovim/nvim-lspconfig' Plug 'neoclide/coc.nvim', {'branch': 'release' }
+    Plug 'neoclide/coc.nvim', {'branch': 'release' }
   endif
   Plug 'vim-ruby/vim-ruby'
   Plug 'tpope/vim-rails'
