@@ -119,6 +119,7 @@ let g:ale_fixers = {
 \  'javascript': ['prettier', 'eslint'],
 \  'typescript': ['prettier', 'eslint'],
 \  'go': ['gofmt'],
+\  'rust': ['rustfmt'],
 \  'ruby': ['rubocop']
 \}
 
@@ -245,14 +246,30 @@ end
 -- map buffer local keybindings when the language server attaches
 local servers = { "solargraph", "tsserver", "rust_analyzer" }
 local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
-
+local settings = {
+  ["rust_analyzer"] = {
+    ["rust-analyzer"] = {
+      assist = {
+        importGranularity = "module",
+        importPrefix = "by_self",
+      },
+      cargo = {
+        loadOutDirsFromCheck = true
+      },
+      procMacro = {
+        enable = true
+      },
+    }
+  }
+}
 for _, lsp in ipairs(servers) do
   nvim_lsp[lsp].setup {
 	  on_attach = on_attach,
 	  flags = {
 	    debounce_text_changes = 150,
 	  },
-    capabilities = capabilities
+    capabilities = capabilities,
+    settings = settings[lsp]
   }
 end
 EOF
