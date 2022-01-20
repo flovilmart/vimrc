@@ -32,6 +32,10 @@ call plug#begin('~/.vim/plugged')
     Plug 'hrsh7th/cmp-cmdline'
     Plug 'hrsh7th/nvim-cmp'
     Plug 'hrsh7th/vim-vsnip'
+    Plug 'simrat39/rust-tools.nvim'
+
+    Plug 'nvim-lua/plenary.nvim'
+    Plug 'nvim-telescope/telescope.nvim'
   else
     Plug 'neoclide/coc.nvim', {'branch': 'release' }
   endif
