@@ -35,6 +35,11 @@ au FileType javascript imap <c-a> alert();<esc>hi
 au FileType javascript inoremap <buffer> $r return
 au FileType javascript inoremap <buffer> $f // --- PH<esc>FP2xi
 
+autocmd BufNewFile,BufRead *.tsx,*.jsx set filetype=typescriptreact
+autocmd BufNewFile,BufRead *.mdx set filetype=markdown.mdx
+autocmd BufNewFile,BufRead *.md set filetype=markdown
+
+
 function! JavaScriptFold()
     setl foldmethod=syntax
     setl foldlevelstart=1

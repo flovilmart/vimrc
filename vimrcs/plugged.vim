@@ -36,6 +36,7 @@ call plug#begin('~/.vim/plugged')
 
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
+    Plug 'nvim-telescope/telescope-file-browser.nvim'
   else
     Plug 'neoclide/coc.nvim', {'branch': 'release' }
   endif
@@ -51,8 +52,11 @@ call plug#begin('~/.vim/plugged')
   Plug 'jebaum/vim-tmuxify'
   Plug 'jgdavey/tslime.vim'
 
+  Plug 'leafgarland/typescript-vim'
+
   " Syntax coloring
   " Plug 'ap/vim-css-color'
   Plug 'cespare/vim-toml', { 'branch': 'main' }
+  Plug 'peitalin/vim-jsx-typescript'
 
 call plug#end()
