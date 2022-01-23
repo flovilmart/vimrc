@@ -1,0 +1,12 @@
+on: push
+jobs:
+  build:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+      - name: Brew bundle
+        run: brew bundle
+      - name: Build
+        run: ./install.sh
+      - name: PlugInstall
+        run: nvim -c PlugInstall
