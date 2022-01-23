@@ -1,6 +1,6 @@
 set nocompatible
 
-call plug#begin('~/.vim/plugged')
+call plug#begin('~/.config/nvim/plugged')
 
   " Look and feel
   Plug 'altercation/vim-colors-solarized'

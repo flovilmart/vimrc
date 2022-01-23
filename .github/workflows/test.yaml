@@ -7,6 +7,6 @@ jobs:
       - name: Brew bundle
         run: brew bundle
       - name: Build
-        run: ./install.sh
+        run: make
       - name: PlugInstall
         run: nvim -c PlugInstall -c quitall
