@@ -9,4 +9,4 @@ jobs:
       - name: Build
         run: ./install.sh
       - name: PlugInstall
-        run: nvim -c PlugInstall
+        run: nvim -c PlugInstall -c quitall
