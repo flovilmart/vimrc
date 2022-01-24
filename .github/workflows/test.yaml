@@ -4,9 +4,5 @@ jobs:
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
-      - name: Brew bundle
-        run: brew bundle
-      - name: Build
+      - name: Install
         run: make
-      - name: PlugInstall
-        run: nvim -c PlugInstall -c quitall
