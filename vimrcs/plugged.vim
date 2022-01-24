@@ -62,5 +62,7 @@ call plug#begin('~/.config/nvim/plugged')
   " Plug 'ap/vim-css-color'
   Plug 'cespare/vim-toml', { 'branch': 'main' }
   Plug 'peitalin/vim-jsx-typescript'
+  Plug 'jelera/vim-javascript-syntax'
+  Plug 'tpope/vim-markdown'
 
 call plug#end()
