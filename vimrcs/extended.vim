@@ -45,8 +45,8 @@ highlight GitGutterChangeDelete ctermfg=4 ctermbg=none
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Fast editing and reloading of vimrc configs
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-map <leader>e :e! ~/.vim/my_configs.vim<cr>
-autocmd! bufwritepost ~/.vim/my_configs.vim source ~/.vim/my_configs.vim
+map <leader>e :e! ~/.config/nvim/my_configs.vim<cr>
+autocmd! bufwritepost ~/.config/nvim/my_configs.vim source ~/.config/nvim/my_configs.vim
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -55,7 +55,7 @@ autocmd! bufwritepost ~/.vim/my_configs.vim source ~/.vim/my_configs.vim
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 try
   if has('nvim')
-    set undodir=~/.vim/temp_dirs/undodir_nvim
+    set undodir=~/.config/nvim/temp_dirs/undodir_nvim
   else
     set undodir=~/.vim/temp_dirs/undodir
   endif
