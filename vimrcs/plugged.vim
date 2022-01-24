@@ -45,12 +45,16 @@ call plug#begin('~/.config/nvim/plugged')
 
   " Additional features
   Plug 'mg979/vim-visual-multi'
-  Plug 'christoomey/vim-tmux-navigator'
   Plug 'ryanoasis/vim-devicons'
   Plug 'vim-test/vim-test'
-  Plug 'preservim/vimux'
-  Plug 'jebaum/vim-tmuxify'
-  Plug 'jgdavey/tslime.vim'
+
+  " tmux integration
+  if executable("tmux")
+    Plug 'christoomey/vim-tmux-navigator'
+    Plug 'preservim/vimux'
+    Plug 'jebaum/vim-tmuxify'
+    Plug 'jgdavey/tslime.vim'
+  end
 
   Plug 'leafgarland/typescript-vim'
 

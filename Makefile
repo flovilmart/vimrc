@@ -1,4 +1,3 @@
-
 all:
 	ln -sfn $(CURDIR) $(HOME)/.config/nvim
 	nvim -u ~/.config/nvim/vimrcs/plugged.vim -c PlugInstall -c quitall
