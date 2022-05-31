@@ -45,9 +45,7 @@ highlight GitGutterChangeDelete ctermfg=4 ctermbg=none
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Fast editing and reloading of vimrc configs
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-map <leader>e :e! ~/.config/nvim/my_configs.vim<cr>
-autocmd! bufwritepost ~/.config/nvim/my_configs.vim source ~/.config/nvim/my_configs.vim
-
+map <leader>e :e! ~/.config/nvim/vimrcs <cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Turn persistent undo on

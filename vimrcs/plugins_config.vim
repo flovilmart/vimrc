@@ -1,5 +1,6 @@
 let g:airline_theme='solarized'
 let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#nvimlsp#enabled = 0
 
 """"""""""""""""""""""""""""""
 " => YankStack
@@ -22,10 +23,10 @@ set rtp+=/usr/local/opt/fzf
 
 nmap <Leader>r :Telescope grep_string<CR>
 nmap <Leader>o :Telescope find_files<CR>
-" nmap <Leader>f :Telescope live_grep<CR>
+nmap <Leader>f :Telescope live_grep<CR>
 nmap ; :Telescope buffers<CR>
 nmap - :Telescope file_browser path=%:p:h<CR>
-nmap <Leader>f :Ag<CR>
+" nmap <Leader>f :Ag<CR>
 
 lua <<EOF
 require("telescope").load_extension "file_browser"
@@ -35,6 +36,11 @@ require("telescope").setup {
       theme = "dropdown",
     },
   },
+  pickers = {
+    buffers = {
+      sort_lastused = true
+    }
+  }
 }
 EOF
 
@@ -124,7 +130,7 @@ let g:ale_linters = {
 \   'typescript': ['eslint', 'prettier'],
 \   'python': ['flake8'],
 \   'ruby': ['rubocop'],
-\   'go': ['go', 'golint', 'errcheck']
+\   'go': ['gopls']
 \}
 
 let g:ale_fixers = {
@@ -269,6 +275,20 @@ for _, lsp in ipairs(servers) do
     capabilities = capabilities,
   }
 end
+
+-- GOPls support
+nvim_lsp.gopls.setup {
+  cmd = {"gopls", "serve"},
+  on_attach = on_attach,
+  settings = {
+    gopls = {
+      analyses = {
+        unusedparams = true,
+      },
+      staticcheck = true,
+    },
+  },
+}
 
 local opts = {
     tools = { -- rust-tools options
