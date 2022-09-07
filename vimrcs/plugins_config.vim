@@ -23,10 +23,10 @@ set rtp+=/usr/local/opt/fzf
 
 nmap <Leader>r :Telescope grep_string<CR>
 nmap <Leader>o :Telescope find_files<CR>
-nmap <Leader>f :Telescope live_grep<CR>
 nmap ; :Telescope buffers<CR>
 nmap - :Telescope file_browser path=%:p:h<CR>
-" nmap <Leader>f :Ag<CR>
+" nmap <Leader>f :Telescope live_grep<CR>
+nmap <Leader>f :Ag<CR>
 
 lua <<EOF
 require("telescope").load_extension "file_browser"
