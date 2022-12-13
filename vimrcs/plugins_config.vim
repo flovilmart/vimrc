@@ -25,12 +25,17 @@ nmap <Leader>r :Telescope grep_string<CR>
 nmap <Leader>o :Telescope find_files<CR>
 nmap ; :Telescope buffers<CR>
 nmap - :Telescope file_browser path=%:p:h<CR>
-" nmap <Leader>f :Telescope live_grep<CR>
-nmap <Leader>f :Ag<CR>
+nmap <Leader>f :Telescope live_grep<CR>
+
+vmap G :GBrowse<CR>
+" nmap <Leader>f :Ag<CR>
 
 lua <<EOF
 require("telescope").load_extension "file_browser"
 require("telescope").setup {
+  defaults = {
+    file_ignore_patterns = { ".git", "node_modules" }
+  },
   extensions = {
     file_browser = {
       theme = "dropdown",
@@ -39,8 +44,13 @@ require("telescope").setup {
   pickers = {
     buffers = {
       sort_lastused = true
-    }
-  }
+    },
+    live_grep = {
+      additional_args = function(opts)
+        return {"--hidden"}
+      end
+    },
+  },
 }
 EOF
 
@@ -128,6 +138,7 @@ let g:go_fmt_command = "goimports"
 let g:ale_linters = {
 \   'javascript': ['eslint', 'prettier'],
 \   'typescript': ['eslint', 'prettier'],
+\   'typescriptreact': ['eslint', 'prettier'],
 \   'python': ['flake8'],
 \   'ruby': ['rubocop'],
 \   'go': ['gopls']
@@ -137,6 +148,7 @@ let g:ale_fixers = {
 \  '*': ['remove_trailing_lines', 'trim_whitespace'],
 \  'javascript': ['prettier', 'eslint'],
 \  'typescript': ['prettier', 'eslint'],
+\  'typescriptreact': ['prettier', 'eslint'],
 \  'go': ['gofmt'],
 \  'rust': ['rustfmt'],
 \  'ruby': ['rubocop']
