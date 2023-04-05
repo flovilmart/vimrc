@@ -22,9 +22,9 @@ let g:fzf_history_dir = '~/.fzf_history/'
 set rtp+=/usr/local/opt/fzf
 
 nmap <Leader>r :Telescope grep_string<CR>
-nmap <Leader>o :Telescope find_files<CR>
+nmap <Leader>o :Telescope find_files hidden=true<CR>
 nmap ; :Telescope buffers<CR>
-nmap - :Telescope file_browser path=%:p:h<CR>
+nmap - :Telescope file_browser path=%:p:h hidden=true<CR>
 nmap <Leader>f :Telescope live_grep<CR>
 
 vmap G :GBrowse<CR>
@@ -47,7 +47,7 @@ require("telescope").setup {
     },
     live_grep = {
       additional_args = function(opts)
-        return {"--hidden"}
+        return {"--hidden", "-S", "-F"}
       end
     },
   },
