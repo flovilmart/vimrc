@@ -9,6 +9,7 @@ call plug#begin('~/.config/nvim/plugged')
 
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
+  Plug 'github/copilot.vim'
 
   " Searching
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': { -> fzf#install() } }
