@@ -35,6 +35,9 @@ call plug#begin('~/.config/nvim/plugged')
     Plug 'hrsh7th/vim-vsnip'
     Plug 'simrat39/rust-tools.nvim'
 
+    " Java
+    Plug 'mfussenegger/nvim-jdtls'
+
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-telescope/telescope-file-browser.nvim'
