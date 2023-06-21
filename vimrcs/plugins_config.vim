@@ -24,7 +24,7 @@ set rtp+=/usr/local/opt/fzf
 nmap <Leader>r :Telescope grep_string<CR>
 nmap <Leader>o :Telescope find_files hidden=true<CR>
 nmap ; :Telescope buffers<CR>
-nmap - :Telescope file_browser path=%:p:h hidden=true<CR>
+nmap - :Telescope file_browser path=%:p:h hidden=false<CR>
 nmap <Leader>f :Telescope live_grep<CR>
 
 vmap G :GBrowse<CR>
@@ -34,7 +34,7 @@ lua <<EOF
 require("telescope").load_extension "file_browser"
 require("telescope").setup {
   defaults = {
-    file_ignore_patterns = { ".git", "node_modules" }
+    file_ignore_patterns = { "^.git/", "node_modules" }
   },
   extensions = {
     file_browser = {
@@ -136,12 +136,12 @@ let g:go_fmt_command = "goimports"
 " => Syntastic (syntax checker)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:ale_linters = {
-\   'javascript': ['eslint', 'prettier'],
-\   'typescript': ['eslint', 'prettier'],
-\   'typescriptreact': ['eslint', 'prettier'],
-\   'python': ['flake8'],
-\   'ruby': ['rubocop'],
-\   'go': ['gopls']
+\  'javascript': ['eslint', 'prettier'],
+\  'typescript': ['eslint', 'prettier'],
+\  'typescriptreact': ['eslint', 'prettier'],
+\  'python': ['flake8'],
+\  'ruby': ['rubocop'],
+\  'go': ['gopls'],
 \}
 
 let g:ale_fixers = {
@@ -151,7 +151,7 @@ let g:ale_fixers = {
 \  'typescriptreact': ['prettier', 'eslint'],
 \  'go': ['gofmt'],
 \  'rust': ['rustfmt'],
-\  'ruby': ['rubocop']
+\  'ruby': ['rubocop'],
 \}
 
 nmap <silent> <leader>a <Plug>(ale_next_wrap)
