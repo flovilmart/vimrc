@@ -68,4 +68,6 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'jelera/vim-javascript-syntax'
   Plug 'tpope/vim-markdown'
 
+  Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install', 'for': ['markdown', 'vim-plug']}
+
 call plug#end()
