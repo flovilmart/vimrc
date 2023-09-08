@@ -34,7 +34,13 @@ lua <<EOF
 require("telescope").load_extension "file_browser"
 require("telescope").setup {
   defaults = {
-    file_ignore_patterns = { "^.git/", "node_modules" }
+    file_ignore_patterns = { "^.git/", "node_modules" },
+    mappings = {
+      i = {
+        ['<C-p>'] = require("telescope.actions").cycle_history_next,
+        ['<C-o>'] = require("telescope.actions").cycle_history_prev,
+      },
+    },
   },
   extensions = {
     file_browser = {
@@ -305,7 +311,6 @@ nvim_lsp.gopls.setup {
 local opts = {
     tools = { -- rust-tools options
         autoSetHints = true,
-        hover_with_actions = true,
         inlay_hints = {
             show_parameter_hints = false,
             parameter_hints_prefix = "",
