@@ -47,7 +47,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'vim-ruby/vim-ruby'
   Plug 'tpope/vim-rails'
 
-  Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+  " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 
   " Additional features
   Plug 'mg979/vim-visual-multi'

@@ -1,7 +1,6 @@
 local home = os.getenv('HOME')
 local jdtls = require('jdtls')
-local java_home = os.getenv('JAVA_HOME')
-local jdtls_home = '/usr/local/Cellar/jdtls/1.24.0/libexec/'
+local jdtls_home = '/opt/homebrew/Cellar/jdtls/1.29.0/libexec/'
 
 -- File types that signify a Java project's root directory. This will be
 -- used by eclipse to determine what constitutes a workspace
@@ -62,15 +61,15 @@ local config = {
   -- for a list of options
   settings = {
     java = {
-      format = {
-        settings = {
-          -- Use Google Java style guidelines for formatting
-          -- To use, make sure to download the file from https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml
-          -- and place it in the ~/.local/share/eclipse directory
-          url = "/.local/share/eclipse/eclipse-java-google-style.xml",
-          profile = "GoogleStyle",
-        },
-      },
+      -- format = {
+      --   settings = {
+      --     -- Use Google Java style guidelines for formatting
+      --     -- To use, make sure to download the file from https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml
+      --     -- and place it in the ~/.local/share/eclipse directory
+      --     url = "/.local/share/eclipse/eclipse-java-google-style.xml",
+      --     profile = "GoogleStyle",
+      --   },
+      -- },
       signatureHelp = { enabled = true },
       contentProvider = { preferred = 'fernflower' },  -- Use fernflower to decompile library code
       -- Specify any completion options
@@ -116,8 +115,12 @@ local config = {
       configuration = {
         runtimes = {
           {
-            name = "JavaSE-17",
-            path = java_home
+            name = "JavaSE-19",
+            path = os.getenv("JAVA_19_HOME") .. "/bin/java",
+          },
+          {
+            name = "JavaSE-21",
+            path = os.getenv("JAVA_21_HOME") .. "/bin/java",
           },
         }
       }
@@ -129,32 +132,33 @@ local config = {
   -- See: https://github.com/eclipse/eclipse.jdt.ls#running-from-the-command-line
   -- for the full list of options
   cmd = {
-    java_home .. "/bin/java",
-    '-Declipse.application=org.eclipse.jdt.ls.core.id1',
-    '-Dosgi.bundles.defaultStartLevel=4',
-    '-Declipse.product=org.eclipse.jdt.ls.core.product',
-    '-Dlog.protocol=true',
-    '-Dlog.level=ALL',
-    '-Xmx4g',
-    '--add-modules=ALL-SYSTEM',
-    '--add-opens', 'java.base/java.util=ALL-UNNAMED',
-    '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-    -- If you use lombok, download the lombok jar and place it in ~/.local/share/eclipse
-    '-javaagent:' .. home .. '/.local/share/eclipse/lombok.jar',
+    '/opt/homebrew/bin/jdtls',
+    --  java_home .. "/bin/java",
+    --  '-Declipse.application=org.eclipse.jdt.ls.core.id1',
+    --  '-Dosgi.bundles.defaultStartLevel=4',
+    --  '-Declipse.product=org.eclipse.jdt.ls.core.product',
+    --  '-Dlog.protocol=true',
+    --  '-Dlog.level=ALL',
+    --  '-Xmx4g',
+    --  '--add-modules=ALL-SYSTEM',
+    --  '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+    --  '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+    --  -- If you use lombok, download the lombok jar and place it in ~/.local/share/eclipse
+   '-javaagent:' .. home .. '/.local/share/eclipse/lombok.jar',
 
-    -- The jar file is located where jdtls was installed. This will need to be updated
-    -- to the location where you installed jdtls
-    '-jar', vim.fn.glob(jdtls_home .. 'plugins/org.eclipse.equinox.launcher_*.jar'),
 
-    -- The configuration for jdtls is also placed where jdtls was installed. This will
-    -- need to be updated depending on your environment
-    '-configuration', jdtls_home .. 'config_mac',
+    --  -- The jar file is located where jdtls was installed. This will need to be updated
+    --  -- to the location where you installed jdtls
+    --  '-jar', vim.fn.glob(jdtls_home .. 'plugins/org.eclipse.equinox.launcher_1.6.500.v20230717-2134.jar'),
 
-    -- Use the workspace_folder defined above to store data for this project
-    '-data', workspace_folder,
+    --  -- The configuration for jdtls is also placed where jdtls was installed. This will
+    --  -- need to be updated depending on your environment
+    --  '-configuration', jdtls_home .. 'config_mac',
+
+    --  -- Use the workspace_folder defined above to store data for this project
+    --  '-data', workspace_folder,
   },
 }
-
 -- Finally, start jdtls. This will run the language server using the configuration we specified,
 -- setup the keymappings, and attach the LSP client to the current buffer
 jdtls.start_or_attach(config)
