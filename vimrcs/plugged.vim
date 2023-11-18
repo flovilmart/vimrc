@@ -15,6 +15,9 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
 
+  " TreeSitter: Code parsing
+  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+
   " Git
   Plug 'tpope/vim-fugitive'
   Plug 'tpope/vim-rhubarb'
