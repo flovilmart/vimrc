@@ -44,7 +44,7 @@ vim.call('plug#begin', '~/.config/nvim/plugged')
   Plug ('nvim-telescope/telescope.nvim')
   Plug ('nvim-telescope/telescope-file-browser.nvim')
 
-  Plug ('vim-ruby/vim-ruby')
+  --. Plug ('vim-ruby/vim-ruby')
   Plug ('tpope/vim-rails')
 
   -- " Plug ('fatih/vim-go', { 'do': ':GoUpdateBinaries' }

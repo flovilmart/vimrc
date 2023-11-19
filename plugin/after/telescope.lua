@@ -1,4 +1,3 @@
-print "Loading telescope"
 local telescope = require("telescope")
 telescope.load_extension "file_browser"
 telescope.setup {
@@ -40,5 +39,3 @@ vim.g.fzf_action = {
   ['ctrl-t'] = 'tab split',
   ['ctrl-i'] = 'split',
   ['ctrl-v'] = 'vsplit' }
-
-print "Setup telescope"
