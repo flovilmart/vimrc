@@ -1,5 +1,5 @@
 
-local function nnoremap(rhs, lhs, bufopts, desc)
+local function nmap(rhs, lhs, bufopts, desc)
   bufopts.desc = desc
   vim.keymap.set("n", rhs, lhs, bufopts)
 end
@@ -10,34 +10,33 @@ local on_attach = function(client, bufnr)
 
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
 
-  nnoremap('gD', vim.lsp.buf.declaration, bufopts, "Go to declaration")
-  nnoremap('gd', vim.lsp.buf.definition, bufopts, "Go to definition")
-  nnoremap('gi', vim.lsp.buf.implementation, bufopts, "Go to implementation")
-  nnoremap('gr', vim.lsp.buf.references, bufopts, "Go to references")
-  nnoremap('K', vim.lsp.buf.hover, bufopts, "Hover text")
-  nnoremap('<space>k', vim.lsp.buf.signature_help, bufopts, "Show signature")
-  nnoremap('<space>wa', vim.lsp.buf.add_workspace_folder, bufopts, "Add workspace folder")
-  nnoremap('<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts, "Remove workspace folder")
-  nnoremap('<space>wl', function()
+  nmap('gD', vim.lsp.buf.declaration, bufopts, "Go to declaration")
+  nmap('gd', vim.lsp.buf.definition, bufopts, "Go to definition")
+  nmap('gi', vim.lsp.buf.implementation, bufopts, "Go to implementation")
+  nmap('gr', vim.lsp.buf.references, bufopts, "Go to references")
+  nmap('K', vim.lsp.buf.hover, bufopts, "Hover text")
+  nmap('<space>k', vim.lsp.buf.signature_help, bufopts, "Show signature")
+  nmap('<space>wa', vim.lsp.buf.add_workspace_folder, bufopts, "Add workspace folder")
+  nmap('<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts, "Remove workspace folder")
+  nmap('<space>wl', function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   end, bufopts, "List workspace folders")
-  nnoremap('<space>D', vim.lsp.buf.type_definition, bufopts, "Go to type definition")
-  nnoremap('<space>rn', vim.lsp.buf.rename, bufopts, "Rename")
-  nnoremap('<space>ca', vim.lsp.buf.code_action, bufopts, "Code actions")
+  nmap('<space>D', vim.lsp.buf.type_definition, bufopts, "Go to type definition")
+  nmap('<space>rn', vim.lsp.buf.rename, bufopts, "Rename")
+  nmap('<space>ca', vim.lsp.buf.code_action, bufopts, "Code actions")
   vim.keymap.set('v', "<space>ca", "<ESC><CMD>lua vim.lsp.buf.range_code_action()<CR>",
     { noremap=true, silent=true, buffer=bufnr, desc = "Code actions" })
-  nnoremap('<space>f', function() vim.lsp.buf.format { async = true } end, bufopts, "Format file")
+  nmap('<space>f', function() vim.lsp.buf.format { async = true } end, bufopts, "Format file")
 
-  noremap('<space>e', vim.diagnostic.open_float, bufopts, "Open diagnostics")
-  noremap('[d', vim.lsp.diagnostic.goto_prev, opts, "Go to previous diagnostic")
-  noremap(']d', vim.lsp.diagnostic.goto_next, opts, "Go to next diagnostic")
-  noremap('<space>q', vim.lsp.diagnostic.set_loclist, opts, "Set loclist")
-  noremap("<space>f", vim.lsp.buf.formatting, opts, "Format file")
+  nmap('<space>e', vim.diagnostic.open_float, bufopts, "Open diagnostics")
+  nmap('[d', vim.lsp.diagnostic.goto_prev, bufopts, "Go to previous diagnostic")
+  nmap(']d', vim.lsp.diagnostic.goto_next, bufopts, "Go to next diagnostic")
+  nmap('<space>q', vim.lsp.diagnostic.set_loclist, bufopts, "Set loclist")
 end
 
 local M = {}
 
 M.on_attach = on_attach
-M.nnoremap = nnoremap
+M.nmap = nnoremap
 
 return M
