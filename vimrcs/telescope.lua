@@ -1,12 +1,14 @@
 local telescope = require("telescope")
+local actions = require("telescope.actions")
 telescope.load_extension "file_browser"
 telescope.setup {
   defaults = {
     file_ignore_patterns = { "^.git/", "node_modules" },
     mappings = {
       i = {
-        ['<C-p>'] = require("telescope.actions").cycle_history_next,
-        ['<C-o>'] = require("telescope.actions").cycle_history_prev,
+        ['<C-p>'] = actions.cycle_history_next,
+        ['<C-o>'] = actions.cycle_history_prev,
+        ["<C-t>"] = actions.select_tab,
       },
     },
   },
@@ -27,7 +29,7 @@ telescope.setup {
   },
 }
 
-local function set_keymap(...) vim.api.nvim_set_keymap(...) end
+local set_keymap = vim.api.nvim_set_keymap
 set_keymap("n", "<Leader>r", "<cmd>:Telescope grep_string<CR>", {noremap = true})
 set_keymap("n", "<Leader>f", "<cmd>:Telescope live_grep<CR>", {noremap = true})
 set_keymap("n", "<Leader>o", "<cmd>:Telescope find_files hidden=true<CR>", {noremap = true})

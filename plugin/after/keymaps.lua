@@ -5,3 +5,4 @@ end
 
 nmap("<leader>=", "gg=G", { silent = true }, "Reindent")
 nmap("<leader>w", ":w!<cr>", { silent = true }, "Save")
+nmap("<leader>q", ":q<cr>", { silent = true }, "Close buffer")
