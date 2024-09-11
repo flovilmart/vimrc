@@ -127,7 +127,7 @@ local config = {
     --  '--add-opens', 'java.base/java.util=ALL-UNNAMED',
     --  '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
     --  -- If you use lombok, download the lombok jar and place it in ~/.local/share/eclipse
-   '-javaagent:' .. home .. '/.local/share/eclipse/lombok.jar',
+   '--jvm-arg=-javaagent:' .. home .. '/.local/share/eclipse/lombok.jar',
 
 
     --  -- The jar file is located where jdtls was installed. This will need to be updated
@@ -140,6 +140,7 @@ local config = {
 
     --  -- Use the workspace_folder defined above to store data for this project
     --  '-data', workspace_folder,
+    '-data' .. workspace_folder,
   },
 }
 -- Finally, start jdtls. This will run the language server using the configuration we specified,

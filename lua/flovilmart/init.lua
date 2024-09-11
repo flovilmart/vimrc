@@ -35,6 +35,7 @@ vim.call('plug#begin', '~/.config/nvim/plugged')
   Plug ('hrsh7th/vim-vsnip')
 
   Plug ('github/copilot.vim')
+  Plug ('olimorris/codecompanion.nvim')
 
   -- Rust
   Plug ('simrat39/rust-tools.nvim')

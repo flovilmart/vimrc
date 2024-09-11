@@ -53,7 +53,7 @@ vim.cmd [[
   highlight GitGutterDelete ctermfg=1 ctermbg=none
   highlight GitGutterChangeDelete ctermfg=4 ctermbg=none
 
-  map <leader>e :e! ~/.config/nvim/vimrcs <cr>
+  map <leader>e :e! ~/.config/nvim<cr>
 ]]
 
 vim.g.airline_theme = 'solarized'

@@ -4,7 +4,7 @@ local lsp_common = require('lsp_common')
 
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
-local servers = { "tsserver", "solargraph" }
+local servers = { "tsserver", "solargraph", "pyright" }
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 for _, lsp in ipairs(servers) do
@@ -29,6 +29,13 @@ nvim_lsp.gopls.setup {
       staticcheck = true,
     },
   },
+}
+nvim_lsp.pyright.setup {
+  on_attach = lsp_common.on_attach,
+  flags = {
+    debounce_text_changes = 150,
+  },
+  capabilities = capabilities,
 }
 
 local opts = {

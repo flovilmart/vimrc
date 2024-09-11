@@ -21,7 +21,7 @@ telescope.setup {
     },
     live_grep = {
       additional_args = function(opts)
-        return {"--hidden", "-S", "-F"}
+        return {"--hidden", "-i"} -- , "-F"}
       end
     },
   },
