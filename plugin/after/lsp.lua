@@ -30,13 +30,6 @@ nvim_lsp.gopls.setup {
     },
   },
 }
-nvim_lsp.pyright.setup {
-  on_attach = lsp_common.on_attach,
-  flags = {
-    debounce_text_changes = 150,
-  },
-  capabilities = capabilities,
-}
 
 local opts = {
     tools = { -- rust-tools options
