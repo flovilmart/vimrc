@@ -5,6 +5,7 @@ vim.call('plug#begin', '~/.config/nvim/plugged')
   -- Style and coloring
   Plug ('altercation/vim-colors-solarized')
   Plug ('sheerun/vim-wombat-scheme')
+  Plug ('Tsuzat/neosolarized.nvim')
   Plug ('vim-airline/vim-airline')
   Plug ('vim-airline/vim-airline-themes')
 

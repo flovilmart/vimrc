@@ -39,8 +39,8 @@ vim.g.user_zen_mode = 'a'
 vim.cmd [[
   filetype plugin on
   filetype indent on
-  syntax enable
-  colorscheme solarized
+  syntax on
+  colorscheme NeoSolarized
   set guioptions-=r
   set guioptions-=R
   set guioptions-=l
@@ -56,7 +56,15 @@ vim.cmd [[
   map <leader>e :e! ~/.config/nvim<cr>
 ]]
 
-vim.g.airline_theme = 'solarized'
-vim.g.airline_solarized_bg='dark'
-vim.g["airline#extensions#ale#enabled"] = 0
+-- vim.g.airline_theme = 'solrarized'
+-- vim.g.airline_solarized_bg='dark'
+-- vim.g["airline#extensions#ale#enabled"] = 0
 vim.g["airline#extensions#nvimlsp#enabled"] = 1
+
+
+local NeoSolarized = require("NeoSolarized")
+
+NeoSolarized.setup {
+  style = "dark", -- "dark" or "light"
+  transparent = true, -- true/false; Enable this to disable setting the background color
+}
