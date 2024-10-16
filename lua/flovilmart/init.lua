@@ -38,6 +38,13 @@ vim.call('plug#begin', '~/.config/nvim/plugged')
   Plug ('github/copilot.vim')
   Plug ('olimorris/codecompanion.nvim')
 
+
+  -- Debugger
+  Plug('mfussenegger/nvim-dap')
+  Plug('mxsdev/nvim-dap-vscode-js')
+  Plug('rcarriga/nvim-dap-ui')
+  Plug('nvim-neotest/nvim-nio')
+
   -- Rust
   Plug ('simrat39/rust-tools.nvim')
 
