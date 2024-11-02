@@ -1,11 +1,11 @@
-local dap = require("dap")
+local dap, dapui = require("dap"), require('dapui')
 
 -- Set keymaps to control the debugger
-vim.keymap.set('n', '<leader>c', require 'dap'.continue)
-vim.keymap.set('n', '<leader>s', require 'dap'.step_over)
-vim.keymap.set('n', '<leader>d', require 'dap'.step_into)
-vim.keymap.set('n', '<leader>a', require 'dap'.step_out)
-vim.keymap.set('n', '<leader>b', require 'dap'.toggle_breakpoint)
+vim.keymap.set('n', '<leader>c', dap.continue)
+vim.keymap.set('n', '<leader>s', dap.step_over)
+vim.keymap.set('n', '<leader>d', dap.step_into)
+vim.keymap.set('n', '<leader>a', dap.step_out)
+vim.keymap.set('n', '<leader>b', dap.toggle_breakpoint)
 vim.keymap.set('n', '<leader>B', function()
   require 'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))
 end)
@@ -49,9 +49,7 @@ for _, language in ipairs(js_based_languages) do
   }
 end
 
-require("dapui").setup()
-
-local dap, dapui = require("dap"), require("dapui")
+dapui.setup()
 
 dap.listeners.after.event_initialized["dapui_config"] = function()
   dapui.open({})

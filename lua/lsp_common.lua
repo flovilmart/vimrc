@@ -29,9 +29,11 @@ local on_attach = function(client, bufnr)
   nmap('<space>f', function() vim.lsp.buf.format { async = true } end, bufopts, "Format file")
 
   nmap('<space>e', vim.diagnostic.open_float, bufopts, "Open diagnostics")
-  nmap('[d', vim.lsp.diagnostic.goto_prev, bufopts, "Go to previous diagnostic")
-  nmap(']d', vim.lsp.diagnostic.goto_next, bufopts, "Go to next diagnostic")
-  nmap('<space>q', vim.lsp.diagnostic.set_loclist, bufopts, "Set loclist")
+  if vim.diagnostic.goto_prev ~= nil then
+    nmap('[d', vim.diagnostic.goto_prev, bufopts, "Go to previous diagnostic")
+    nmap(']d', vim.diagnostic.goto_next, bufopts, "Go to next diagnostic")
+  end
+  nmap('<space>q', vim.diagnostic.setloclist, bufopts, "Set loclist")
 end
 
 local M = {}

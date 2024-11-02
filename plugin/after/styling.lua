@@ -40,11 +40,11 @@ vim.cmd [[
   filetype plugin on
   filetype indent on
   syntax on
-  colorscheme NeoSolarized
   set guioptions-=r
   set guioptions-=R
   set guioptions-=l
   set guioptions-=L
+  set noswapfile
 
   highlight clear SignColumn
   highlight SignColumn ctermbg=none
@@ -54,6 +54,8 @@ vim.cmd [[
   highlight GitGutterChangeDelete ctermfg=4 ctermbg=none
 
   map <leader>e :e! ~/.config/nvim<cr>
+
+  colorscheme NeoSolarized
 ]]
 
 -- vim.g.airline_theme = 'solrarized'
