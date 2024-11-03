@@ -6,7 +6,8 @@ all() {
   install_brew_deps
   install_apk_deps
 	ln -sfn $(pwd) ${HOME}/.config/nvim
-  nvim -c PlugInstall -c quitall
+  nvim -c PlugInstall -c "write ${TMPDIR}/PlugInstall.out" -c quitall
+  cat ${TMPDIR}/PlugInstall.out
   nvim -c PlugStatus -c "write ${TMPDIR}/PlugStatus.out" -c quitall
 	cat ${TMPDIR}/PlugStatus.out
   nvim -c TSUpdate -c quitall
