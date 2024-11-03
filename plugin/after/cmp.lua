@@ -1,5 +1,8 @@
 -- Setup nvim-cmp.
-local cmp = require'cmp'
+local cmp_loaded, cmp = pcall(function() return require'cmp' end)
+if not cmp_loaded then
+  return
+end
 
 cmp.setup({
   snippet = {

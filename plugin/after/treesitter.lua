@@ -1,3 +1,8 @@
+local nvim_ts_loaded, nvim_ts = pcall(function() return require'nvim-treesitter' end)
+if not nvim_ts_loaded then
+  return
+end
+
 require'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all" (the five listed parsers should always be installed)
   ensure_installed = { "ruby", "typescript", "javascript", "go", "lua", "vim", "query", "vimdoc", "c", "rust" },

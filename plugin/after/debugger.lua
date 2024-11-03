@@ -1,4 +1,11 @@
-local dap, dapui = require("dap"), require('dapui')
+local dap_loaded, dap = pcall(function() return require'dap' end)
+if not dap_loaded then
+  return
+end
+local dapui_loaded, dapui = pcall(function() return require'dapui' end)
+if not dapui_loaded then
+  return
+end
 
 -- Set keymaps to control the debugger
 vim.keymap.set('n', '<leader>c', dap.continue)

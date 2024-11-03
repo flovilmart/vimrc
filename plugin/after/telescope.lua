@@ -1,4 +1,8 @@
-local telescope = require("telescope")
+local telescope_loaded, telescope = pcall(function() return require'telescope' end)
+if not telescope_loaded then
+  return
+end
+
 telescope.load_extension "file_browser"
 telescope.setup {
   defaults = {

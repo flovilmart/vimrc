@@ -7,7 +7,7 @@ set.background = dark
 set.clipboard = "unnamed"
 set.so = 7
 set.langmenu = 'en_US.UTF-8'
-set.shell = '/bin/zsh'
+set.shell = '/usr/bin/nu'
 set.number = true
 set.cmdheight = 2
 set.whichwrap = 'b,s,<,>,[,],h,l'
@@ -55,7 +55,7 @@ vim.cmd [[
 
   map <leader>e :e! ~/.config/nvim<cr>
 
-  colorscheme NeoSolarized
+  silent! colorscheme NeoSolarized
 ]]
 
 -- vim.g.airline_theme = 'solrarized'
@@ -63,10 +63,10 @@ vim.cmd [[
 -- vim.g["airline#extensions#ale#enabled"] = 0
 vim.g["airline#extensions#nvimlsp#enabled"] = 1
 
-
-local NeoSolarized = require("NeoSolarized")
-
-NeoSolarized.setup {
-  style = "dark", -- "dark" or "light"
-  transparent = true, -- true/false; Enable this to disable setting the background color
-}
+local NeoSolarized_loaded, NeoSolarized = pcall(function() return require'NeoSolarized' end)
+if NeoSolarized_loaded then
+  NeoSolarized.setup {
+    style = "dark", -- "dark" or "light"
+    transparent = true, -- true/false; Enable this to disable setting the background color
+  }
+end

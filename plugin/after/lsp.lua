@@ -1,4 +1,7 @@
-local nvim_lsp = require('lspconfig')
+local lspconfig_loaded, nvim_lsp= pcall(function() return require'lspconfig' end)
+if not lspconfig_loaded then
+  return
+end
 
 local lsp_common = require('lsp_common')
 
