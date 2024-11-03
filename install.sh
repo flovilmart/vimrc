@@ -1,4 +1,4 @@
-set +ex
+set -ex
 
 all() {
   setup_shell
@@ -17,11 +17,15 @@ all() {
 }
 
 install_brew_deps() {
-	which brew && brew bundle
+  if command -v brew > /dev/null; then
+	  brew bundle
+  fi
 }
 
 install_apk_deps() {
-  which apk && apk add nodejs npm ruby ruby-dev make clang
+  if command -v apk > /dev/null; then
+    apk add nodejs npm ruby ruby-dev make clang
+  fi
 }
 
 setup_shell() {
@@ -52,7 +56,7 @@ lang_server() {
   }
 
   ruby() {
-    gem install solargraph
+    gem install -N solargraph
   }
 
   $1
