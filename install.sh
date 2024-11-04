@@ -5,6 +5,7 @@ all() {
   TMPDIR=$(mktemp -d)
   install_brew_deps
   install_apk_deps
+  mkdir -p ${HOME}/.config
 	ln -sfn $(pwd) ${HOME}/.config/nvim
   nvim -c PlugInstall -c "write ${TMPDIR}/PlugInstall.out" -c quitall
   cat ${TMPDIR}/PlugInstall.out
@@ -29,10 +30,12 @@ install_apk_deps() {
 }
 
 setup_shell() {
-  NUSHELL_PATH=$(which nu)
-  if [ "${NUSHELL_PATH}" != "/usr/bin/nu" ]; then
-    echo "Setting up NuShell to /usr/bin/nu"
-    ln -s ${NUSHELL_PATH} /usr/bin/nu
+  if command -v brew > /dev/null; then
+    NUSHELL_PATH=$(which nu)
+    if [ "${NUSHELL_PATH}" != "/usr/bin/nu" ]; then
+      echo "Setting up NuShell to /usr/bin/nu"
+      ln -s ${NUSHELL_PATH} /usr/bin/nu
+    fi
   fi
 }
 
