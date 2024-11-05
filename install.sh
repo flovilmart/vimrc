@@ -13,7 +13,7 @@ all() {
 	cat ${TMPDIR}/PlugStatus.out
 
   # sleep 20s, no way I know to wait until everything is installed
-  nvim -c "TSUpdate" -c "30sleep" -c quitall
+  nvim -c "TSUpdate" -c "60sleep" -c quitall
 
   lang_server ruby
   lang_server typescript
