@@ -11,7 +11,5 @@ COPY . .
 
 # Adds SSH keys to make sure we can clone submodules
 RUN --mount=type=ssh ./install.sh all
-RUN sed -i "s#/opt/homebrew/bin/nu#/bin/bash#" ./plugin/after/styling.lua
-
 
 CMD nu

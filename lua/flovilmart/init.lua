@@ -10,7 +10,7 @@ vim.call('plug#begin', '~/.config/nvim/plugged')
   Plug ('vim-airline/vim-airline-themes')
 
   --" TreeSitter: Code parsing
-  Plug ('nvim-treesitter/nvim-treesitter', { ['do'] = vim.fn['TSUpdate'] })
+  Plug ('nvim-treesitter/nvim-treesitter')
   Plug ('nvim-treesitter/playground')
 
   --" Git

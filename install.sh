@@ -7,13 +7,10 @@ all() {
   install_apk_deps
   mkdir -p ${HOME}/.config
 	ln -sfn $(pwd) ${HOME}/.config/nvim
-  nvim -c PlugInstall -c "write ${TMPDIR}/PlugInstall.out" -c quitall
-  cat ${TMPDIR}/PlugInstall.out
-  nvim -c PlugStatus -c "write ${TMPDIR}/PlugStatus.out" -c quitall
-	cat ${TMPDIR}/PlugStatus.out
+  fix_shell_path
 
-  # sleep 20s, no way I know to wait until everything is installed
-  nvim -c "TSUpdate" -c "60sleep" -c quitall
+  install_nvim_deps
+  setup_treesitter
 
   lang_server ruby
   lang_server typescript
@@ -31,13 +28,41 @@ install_apk_deps() {
   fi
 }
 
+install_nvim_deps() {
+  nvim -c PlugInstall -c "write ${TMPDIR}/PlugInstall.out" -c quitall
+  cat ${TMPDIR}/PlugInstall.out
+  nvim -c PlugStatus -c "write ${TMPDIR}/PlugStatus.out" -c quitall
+	cat ${TMPDIR}/PlugStatus.out
+}
+
+setup_treesitter() {
+  nvim +TSUpdateSync +quitall
+}
+
 setup_shell() {
-  if command -v brew > /dev/null; then
+  if command -v nu > /dev/null; then
     NUSHELL_PATH=$(which nu)
     if [ "${NUSHELL_PATH}" != "/usr/bin/nu" ]; then
       echo "Setting up NuShell to /usr/bin/nu"
       ln -s ${NUSHELL_PATH} /usr/bin/nu
     fi
+  fi
+}
+
+fix_shell_path() {
+  SHELL_PATH=""
+  if command -v nu > /dev/null; then
+    SHELL_PATH=$(which nu)
+  fi
+
+  if [ -z "${SHELL_PATH}" ]; then
+    SHELL_PATH="/bin/bash"
+    echo "Nu not found in path. Using /bin/bash as default"
+  fi
+  if [ "${SHELL_PATH}" == "/opt/homebrew/bin/nu" ]; then
+    echo "nothing to do..."
+  else
+    sed -i "s#/opt/homebrew/bin/nu#${SHELL_PATH}#" ./plugin/after/styling.lua
   fi
 }
 
