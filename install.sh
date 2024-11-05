@@ -60,6 +60,10 @@ lang_server() {
     npm install -g typescript typescript-language-server
   }
 
+  bash() {
+    npm install -g bash-language-server
+  }
+
   ruby() {
     gem install -N solargraph
   }
