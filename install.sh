@@ -11,7 +11,9 @@ all() {
   cat ${TMPDIR}/PlugInstall.out
   nvim -c PlugStatus -c "write ${TMPDIR}/PlugStatus.out" -c quitall
 	cat ${TMPDIR}/PlugStatus.out
-  nvim -c TSUpdate -c quitall
+
+  # sleep 20s, no way I know to wait until everything is installed
+  nvim -c "TSUpdate" -c "30sleep" -c quitall
 
   lang_server ruby
   lang_server typescript
@@ -25,7 +27,7 @@ install_brew_deps() {
 
 install_apk_deps() {
   if command -v apk > /dev/null; then
-    apk add nodejs npm ruby ruby-dev make clang
+    apk add nodejs npm ruby ruby-dev make clang ripgrep
   fi
 }
 
