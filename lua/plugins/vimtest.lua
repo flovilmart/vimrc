@@ -52,23 +52,37 @@ local transformDockerCompose = function(cmd)
   return docker_exec(cmd, container_name)
 end
 
-vim.g["test#custom_transformations"] = {['do'] = transformDockerCompose}
-vim.g['test#transformation'] = "do"
-vim.g['test#strategy'] = "vimux"
-vim.g['test#preserve_screen'] = 1
-vim.g['test#echo_command'] = 0
-vim.g['test#javascript#runner'] = 'jest'
-vim.g['test#javascript#patterns'] = {
-  ['test'] = {'\\v^\\s*%(it|test)\\s*[( ]\\s*%("|\'\'|`)(.*)%("|\'\'|`)'},
-  ['namespace'] = {'\\v^\\s*%(describe|suite|context)\\s*[( ]\\s*%("|\'\'|`)(.*)%("|\'\'|`)'},
+
+return {
+  {
+    "vim-test/vim-test",
+    dependencies = {
+      'christoomey/vim-tmux-navigator',
+      'preservim/vimux',
+      'jebaum/vim-tmuxify',
+      'jgdavey/tslime.vim',
+    },
+    config = function()
+      vim.g["test#custom_transformations"] = {['do'] = transformDockerCompose}
+      vim.g['test#transformation'] = "do"
+      vim.g['test#strategy'] = "vimux"
+      vim.g['test#preserve_screen'] = 1
+      vim.g['test#echo_command'] = 0
+      vim.g['test#javascript#runner'] = 'jest'
+      vim.g['test#javascript#patterns'] = {
+        ['test'] = {'\\v^\\s*%(it|test)\\s*[( ]\\s*%("|\'\'|`)(.*)%("|\'\'|`)'},
+        ['namespace'] = {'\\v^\\s*%(describe|suite|context)\\s*[( ]\\s*%("|\'\'|`)(.*)%("|\'\'|`)'},
+      }
+
+      local noremap = function(rhs, lhs, desc)
+        vim.keymap.set("n", rhs, lhs, {noremap = true, silent=true}, desc)
+      end
+
+      noremap("t<C-n>", ":TestNearest<CR>", "Run nearest test")
+      noremap("t<C-f>", ":TestFile<CR>", "Run test file")
+      noremap("t<C-s>", ":TestSuite<CR>", "Run test suite")
+      noremap("t<C-l>", ":TestLast<CR>", "Run Last")
+      noremap("t<C-g>", ":TestVisit<CR>", "Run Test Visit")
+    end
+  }
 }
-
-local noremap = function(rhs, lhs, desc)
-  vim.keymap.set("n", rhs, lhs, {noremap = true, silent=true}, desc)
-end
-
-noremap("t<C-n>", ":TestNearest<CR>", "Run nearest test")
-noremap("t<C-f>", ":TestFile<CR>", "Run test file")
-noremap("t<C-s>", ":TestSuite<CR>", "Run test suite")
-noremap("t<C-l>", ":TestLast<CR>", "Run Last")
-noremap("t<C-g>", ":TestVisit<CR>", "Run Test Visit")

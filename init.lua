@@ -1,3 +1,1 @@
-vim.g.mapleader = ","
-
-require('flovilmart')
+require('config.lazy')

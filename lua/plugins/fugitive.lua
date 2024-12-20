@@ -11,3 +11,9 @@ vim.api.nvim_create_user_command(
 )
 
 vim.keymap.set("v", "<leader>g", ":GBrowse<CR>", { silent = true }, "Git browse")
+
+return {
+  "tpope/vim-fugitive",
+  "tpope/vim-rhubarb",
+  "airblade/vim-gitgutter",
+}
