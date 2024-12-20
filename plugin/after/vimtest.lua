@@ -5,11 +5,11 @@ local is_running = function(container_name)
 end
 
 local docker_run = function(cmd, container_name)
-  return 'docker-compose run --rm -e RAILS_ENV=test --entrypoint='..vim.fn.shellescape(cmd).. ' '..container_name
+  return 'docker-compose run --rm -e RAILS_ENV=test --entrypoint="'..cmd.. '" '..container_name
 end
 
 local docker_exec = function(cmd, container_name)
-  return 'docker-compose exec -e RAILS_ENV=test '..container_name..' sh -c '..vim.fn.shellescape(cmd)
+  return 'docker-compose exec -e RAILS_ENV=test '..container_name..' sh -c "'..cmd..'"'
 end
 
 local has_docker_compose = function()
@@ -55,7 +55,7 @@ end
 vim.g["test#custom_transformations"] = {['do'] = transformDockerCompose}
 vim.g['test#transformation'] = "do"
 vim.g['test#strategy'] = "vimux"
-vim.g['test#preserve_screen'] = 0
+vim.g['test#preserve_screen'] = 1
 vim.g['test#echo_command'] = 0
 vim.g['test#javascript#runner'] = 'jest'
 vim.g['test#javascript#patterns'] = {
