@@ -6,13 +6,13 @@ end
 codecompanion.setup({
   strategies = {
     chat = {
-      adapter = "copilot",
+      adapter = "gemini",
     },
     inline = {
-      adapter = "copilot",
+      adapter = "gemini",
     },
     agent = {
-      adapter = "copilot",
+      adapter = "gemini",
     },
   },
 })
