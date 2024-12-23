@@ -29,9 +29,9 @@ install_apk_deps() {
 }
 
 install_nvim_deps() {
-  nvim -c PlugInstall -c "write ${TMPDIR}/PlugInstall.out" -c quitall
+  nvim -c "lua require('lazy').install()" -c "write ${TMPDIR}/PlugInstall.out" -c quitall
   cat ${TMPDIR}/PlugInstall.out
-  nvim -c PlugStatus -c "write ${TMPDIR}/PlugStatus.out" -c quitall
+  nvim -c "lua require('lazy').health()" -c "write ${TMPDIR}/PlugStatus.out" -c quitall
 	cat ${TMPDIR}/PlugStatus.out
 }
 
