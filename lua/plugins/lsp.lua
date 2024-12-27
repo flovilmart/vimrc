@@ -16,6 +16,15 @@ function config()
       capabilities = capabilities,
     }
   end
+  nvim_lsp.solargraph.setup {
+    on_attach = lsp_common.on_attach,
+    settings = {
+      solargraph = {
+        diagnostics = true,
+        completion = true
+      }
+    }
+  }
 
   -- GOPls support
   nvim_lsp.gopls.setup {
