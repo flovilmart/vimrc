@@ -25,11 +25,12 @@ end
 local on_attach = function(client, bufnr)
   lsp_common.on_attach(client, bufnr)
   -- Java extensions provided by jdtls
-  -- nnoremap("<C-o>", jdtls.organize_imports, bufopts, "Organize imports")
-  nnoremap("<space>ev", jdtls.extract_variable, bufopts, "Extract variable")
-  nnoremap("<space>ec", jdtls.extract_constant, bufopts, "Extract constant")
-  vim.keymap.set('v', "<space>em", [[<ESC><CMD>lua require('jdtls').extract_method(true)<CR>]],
-    { noremap=true, silent=true, buffer=bufnr, desc = "Extract method" })
+  -- bufopts = { noremap=true, silent=true, buffer=bufnr, desc = "" }
+  -- -- nnoremap("<C-o>", jdtls.organize_imports, bufopts, "Organize imports")
+  -- nnoremap("<space>ev", jdtls.extract_variable, bufopts, "Extract variable")
+  -- nnoremap("<space>ec", jdtls.extract_constant, bufopts, "Extract constant")
+  -- vim.keymap.set('v', "<space>em", [[<ESC><CMD>lua require('jdtls').extract_method(true)<CR>]],
+  --     { noremap=true, silent=true, buffer=bufnr, desc = "Extract method" })
 end
 
 local config = {
@@ -105,6 +106,10 @@ local config = {
             name = "JavaSE-21",
             path = os.getenv("JAVA_21_HOME") .. "/bin/java",
           },
+          {
+            name = "JavaSE-22",
+            path = "/Library/Java/JavaVirtualMachines/amazon-corretto-22.jdk/Contents/Home/bin/java"
+          }
         }
       }
     }

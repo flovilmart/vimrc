@@ -27,6 +27,8 @@ set.tw = 500  -- textwidth
 set.wrap = true
 set.ai = true
 set.si = true
+set.splitright = true
+set.splitbelow = true
 
 vim.g.solarized_termcolors = 256
 vim.g.solarized_termtrans = 1
