@@ -9,13 +9,13 @@ return {
       require("codecompanion").setup({
         strategies = {
           chat = {
-            adapter = "gemini",
+            adapter = "mistral",
           },
           inline = {
-            adapter = "gemini",
+            adapter = "mistral",
           },
           agent = {
-            adapter = "gemini",
+            adapter = "mistral",
           },
         },
       })
