@@ -6,18 +6,16 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
     config = function()
-      vim.api.nvim_create_user_command('CC', 'CodeCompanion', { desc = 'alias for CodeCompanion'})
-      vim.api.nvim_create_user_command('CCC', 'CodeCompanionChat', { desc = 'alias for CodeCompanionChat'})
       require("codecompanion").setup({
         strategies = {
           chat = {
-            adapter = "mistral",
+            adapter = "gemini",
           },
           inline = {
-            adapter = "mistral",
+            adapter = "gemini",
           },
           agent = {
-            adapter = "mistral",
+            adapter = "gemini",
           },
         },
       })
