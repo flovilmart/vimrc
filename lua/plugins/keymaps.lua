@@ -6,5 +6,7 @@ end
 nmap("<leader>=", "gg=G", { silent = true }, "Reindent")
 nmap("<leader>w", ":w!<cr>", { silent = true }, "Save")
 nmap("<leader>q", ":q<cr>", { silent = true }, "Close buffer")
+nmap("<leader>n", ":cn<cr>", { silent = true }, "Next item in quickfix list")
+nmap("<leader>p", ":cp<cr>", { silent = true }, "Previous item in quickfix list")
 
 return {}

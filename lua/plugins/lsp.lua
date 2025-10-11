@@ -1,22 +1,24 @@
 function config()
   local lsp_common = require('lsp_common')
-  local nvim_lsp = require('lspconfig')
+  local nvim_lsp = vim.lsp.config
 
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
-  local servers = { "ts_ls", "solargraph", "pyright", "bashls", "nushell" }
+  local servers = { "ts_ls", "pyright", "bashls", "nushell" }
   local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
   for _, lsp in ipairs(servers) do
-    nvim_lsp[lsp].setup {
+    nvim_lsp[lsp] =  {
   	  on_attach = lsp_common.on_attach,
   	  flags = {
   	    debounce_text_changes = 150,
   	  },
       capabilities = capabilities,
     }
+    vim.lsp.enable(lsp)
   end
-  nvim_lsp.solargraph.setup {
+
+  nvim_lsp['solargraph'] = {
     on_attach = lsp_common.on_attach,
     settings = {
       solargraph = {
@@ -25,9 +27,10 @@ function config()
       }
     }
   }
+  vim.lsp.enable('solargraph')
 
   -- GOPls support
-  nvim_lsp.gopls.setup {
+  nvim_lsp['gopls'] = {
     cmd = {"gopls", "serve"},
     on_attach = lsp_common.on_attach,
     settings = {
@@ -35,12 +38,13 @@ function config()
         analyses = {
           unusedparams = true,
         },
-        staticcheck = true,
+        staticcheck = false, -- breaks current build FIXME
       },
     },
   }
+  -- vim.lsp.enable('gopls')
 
-  local opts = {
+  local rust_tools_ops = {
       tools = { -- rust-tools options
           autoSetHints = true,
           inlay_hints = {
@@ -77,7 +81,7 @@ function config()
       },
   }
 
-  require('rust-tools').setup(opts)
+  -- require('rust-tools').setup(opts)
   local border = {
         {"🭽", "FloatBorder"},
         {"▔", "FloatBorder"},
@@ -97,13 +101,9 @@ function config()
 end
 
 return {
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-      'hrsh7th/cmp-nvim-lsp',
-      'simrat39/rust-tools.nvim',
-      'mfussenegger/nvim-jdtls',
-    },
-    config = config
-  }
+  { 'neovim/nvim-lspconfig',
+    config = config,
+    dependencies = { 'hrsh7th/cmp-nvim-lsp', 'mfussenegger/nvim-jdtls' }
+},
+ --   { 'simrat39/rust-tools.nvim', }
 }
