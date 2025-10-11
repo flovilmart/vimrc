@@ -24,7 +24,7 @@ install_brew_deps() {
 
 install_apk_deps() {
   if command -v apk > /dev/null; then
-    apk add nodejs npm ruby ruby-dev make clang ripgrep
+    apk add nodejs npm ruby ruby-dev make clang ripgrep openssl
   fi
 }
 
