@@ -6,16 +6,17 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
     config = function()
+      local adapter = "mistral"
       require("codecompanion").setup({
         strategies = {
           chat = {
-            adapter = "mistral",
+            adapter = adapter,
           },
           inline = {
-            adapter = "mistral",
+            adapter = adapter,
           },
           agent = {
-            adapter = "mistral",
+            adapter = adapter,
           },
         },
       })
