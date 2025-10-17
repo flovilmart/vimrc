@@ -1,4 +1,11 @@
 
+vim.cmd [[
+  let g:copilot_filetypes = {
+    \ '*': v:true,
+    \ 'codecompanion': v:false,
+    \ }
+]]
+
 return {
   'github/copilot.vim',
   config = function()
