@@ -1,6 +1,7 @@
 return {
   {
-    "olimorris/codecompanion.nvim",
+    "flovilmart/codecompanion.nvim",
+    branch = "wip",
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
@@ -13,12 +14,20 @@ return {
             adapter = adapter,
           },
           inline = {
-            adapter = adapter,
+            adapter = "copilot",
           },
           agent = {
             adapter = adapter,
           },
         },
+         memory = {
+          opts = {
+            chat = {
+              enabled = true,
+            },
+          },
+        },
+        opts = { log_level = "DEBUG" },
       })
     end,
   }
