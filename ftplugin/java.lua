@@ -26,8 +26,8 @@ local on_attach = function(client, bufnr)
   lsp_common.on_attach(client, bufnr)
   -- Java extensions provided by jdtls
   -- nnoremap("<C-o>", jdtls.organize_imports, bufopts, "Organize imports")
-  nnoremap("<space>ev", jdtls.extract_variable, bufopts, "Extract variable")
-  nnoremap("<space>ec", jdtls.extract_constant, bufopts, "Extract constant")
+  nnoremap("<space>ev", jdtls.extract_variable, {}, "Extract variable")
+  nnoremap("<space>ec", jdtls.extract_constant, {}, "Extract constant")
   vim.keymap.set('v', "<space>em", [[<ESC><CMD>lua require('jdtls').extract_method(true)<CR>]],
     { noremap=true, silent=true, buffer=bufnr, desc = "Extract method" })
 end
