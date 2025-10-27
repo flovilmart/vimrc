@@ -44,7 +44,7 @@ setup_shell() {
     NUSHELL_PATH=$(which nu)
     if [ "${NUSHELL_PATH}" != "/usr/bin/nu" ]; then
       echo "Setting up NuShell to /usr/bin/nu"
-      ln -s ${NUSHELL_PATH} /usr/bin/nu
+      ln -s ${NUSHELL_PATH} /usr/bin/nu || echo "unable to symlink nu to /usr/bin/nu, please do this manually"
     fi
   fi
 }
