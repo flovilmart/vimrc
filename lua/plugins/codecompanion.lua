@@ -11,7 +11,7 @@ return {
       require("codecompanion").setup({
         strategies = {
           chat = {
-            adapter =  { name = adapter, model = "codestral-latest" },
+            adapter = { name = adapter, model = "codestral-latest" },
             tools = {
               -- Weather tools stub for development
               ["weather"] = {
