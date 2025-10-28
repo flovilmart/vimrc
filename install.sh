@@ -7,7 +7,6 @@ all() {
   install_apk_deps
   mkdir -p ${HOME}/.config
 	ln -sfn $(pwd) ${HOME}/.config/nvim
-  fix_shell_path
 
   install_nvim_deps
   setup_treesitter
@@ -46,24 +45,6 @@ setup_shell() {
       echo "Setting up NuShell to /usr/bin/nu"
       ln -s ${NUSHELL_PATH} /usr/bin/nu || echo "unable to symlink nu to /usr/bin/nu, please do this manually"
     fi
-  fi
-}
-
-fix_shell_path() {
-  SHELL_PATH=""
-  if command -v nu > /dev/null; then
-    SHELL_PATH=$(which nu)
-  fi
-
-  if [ -z "${SHELL_PATH}" ]; then
-    SHELL_PATH="/bin/zsh"
-    echo "Nu not found in path. Using /bin/zsh as default"
-  fi
-  if [ "${SHELL_PATH}" == "/opt/homebrew/bin/nu" ]; then
-    echo "nothing to do..."
-  else
-    sed -i .bak "s#/opt/homebrew/bin/nu#${SHELL_PATH}#" ./lua/plugins/styling.lua || echo "unable to fix shell path, please do this manually"
-    sed -i "s#/opt/homebrew/bin/nu#${SHELL_PATH}#" ./lua/plugins/styling.lua || echo "unable to fix shell path, please do this manually"
   fi
 }
 
