@@ -62,7 +62,8 @@ fix_shell_path() {
   if [ "${SHELL_PATH}" == "/opt/homebrew/bin/nu" ]; then
     echo "nothing to do..."
   else
-    sed -i "s#/opt/homebrew/bin/nu#${SHELL_PATH}#" ./lua/plugins/styling.lua
+    sed -i .bak "s#/opt/homebrew/bin/nu#${SHELL_PATH}#" ./lua/plugins/styling.lua || echo "unable to fix shell path, please do this manually"
+    sed -i "s#/opt/homebrew/bin/nu#${SHELL_PATH}#" ./lua/plugins/styling.lua || echo "unable to fix shell path, please do this manually"
   fi
 }
 
