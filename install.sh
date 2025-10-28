@@ -10,9 +10,6 @@ all() {
 
   install_nvim_deps
   setup_treesitter
-
-  lang_server ruby
-  lang_server typescript
 }
 
 install_brew_deps() {
