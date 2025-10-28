@@ -78,7 +78,10 @@ lang_server() {
   $1
 }
 
-invoke=$1
+if [ "$#" -eq 0 ]; then
+    set -- all
+fi
+invoke=${1}
 shift
 
 $invoke $@
