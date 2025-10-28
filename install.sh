@@ -56,8 +56,8 @@ fix_shell_path() {
   fi
 
   if [ -z "${SHELL_PATH}" ]; then
-    SHELL_PATH="/bin/bash"
-    echo "Nu not found in path. Using /bin/bash as default"
+    SHELL_PATH="/bin/zsh"
+    echo "Nu not found in path. Using /bin/zsh as default"
   fi
   if [ "${SHELL_PATH}" == "/opt/homebrew/bin/nu" ]; then
     echo "nothing to do..."
