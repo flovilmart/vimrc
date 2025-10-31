@@ -17,7 +17,7 @@ return {
     opts_extend = { "ensure_installed" },
     opts = {
       -- A list of parser names, or "all" (the five listed parsers should always be installed)
-      ensure_installed = { "ruby", "typescript", "javascript", "go", "lua", "vim", "query", "vimdoc", "c", "rust", "nu" },
+      ensure_installed = { "ruby", "typescript", "javascript", "go", "lua", "vim", "query", "vimdoc", "c", "rust", "nu", "css", "toml" },
 
       sync_install = true,
       auto_install = false,
@@ -66,6 +66,7 @@ return {
         },
         filetype = "ejs",
       }
+      vim.treesitter.language.register("html", "ejs")
 
       parser_config.nu = {
         install_info = {
@@ -75,7 +76,18 @@ return {
         },
         filetype = "nu",
       }
-      vim.treesitter.language.register("html", "ejs")
+      parser_config.ghostty = {
+        install_info = {
+          url = "~/src/flovilmart/tree-sitter-ghostty", -- local path or git repo
+          -- url = "https://github.com/flovilmart/tree-sitter-ghostty", -- local path or git repo
+          files = {"src/parser.c"}, -- note that some parsers also require src/scanner.c or src/scanner.cc
+          -- optional entries:
+          -- branch = "main", -- default branch in case of git repo if different from master
+          generate_requires_npm = true, -- if stand-alone parser without npm dependencies
+          requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
+        },
+        filetype = "ghostty", -- if filetype does not match the parser name
+      }
     end,
   }
 }
