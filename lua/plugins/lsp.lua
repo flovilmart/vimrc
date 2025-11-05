@@ -4,8 +4,10 @@ function config()
 
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
-  local servers = { "ts_ls", "pyright", "bashls", "nushell", "graphql" }
-  local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+  local servers = { "ts_ls", "tsserver", "pyright", "bashls", "nushell", "graphql" }
+  -- local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+  local capabilities = require('vim.lsp.protocol').make_client_capabilities()
+  capabilities = require('blink.cmp').get_lsp_capabilities(capabilities)
 
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp] =  {
