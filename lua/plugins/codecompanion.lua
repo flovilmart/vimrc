@@ -9,15 +9,27 @@ return {
     config = function()
       local adapter = "mistral"
       require("codecompanion").setup({
+        extensions = {
+            mcphub = {
+              callback = "mcphub.extensions.codecompanion",
+              opts = {
+                -- MCP Tools
+                make_tools = true,              -- Make individual tools (@server__tool) and server groups (@server) from MCP servers
+                show_server_tools_in_chat = true, -- Show individual tools in chat completion (when make_tools=true)
+                add_mcp_prefix_to_tool_names = false, -- Add mcp__ prefix (e.g `@mcp__github`, `@mcp__neovim__list_issues`)
+                show_result_in_chat = true,      -- Show tool results directly in chat buffer
+                format_tool = nil,               -- function(tool_name:string, tool: CodeCompanion.Agent.Tool) : string Function to format tool names to show in the chat buffer
+                -- MCP Resources
+                make_vars = true,                -- Convert MCP resources to #variables for prompts
+                -- MCP Prompts
+                make_slash_commands = true,      -- Add MCP prompts as /slash commands
+              }
+            }
+          },
         strategies = {
           chat = {
-            adapter = { name = adapter, model = "codestral-latest" },
+            adapter = { name = adapter, model = "magistral-small-latest" },
             tools = {
-              -- Weather tools stub for development
-              ["weather"] = {
-                callback = vim.fn.getcwd() .. "/tests/strategies/chat/tools/catalog/stubs/weather.lua",
-                description = "Get the latest weather",
-              },
               opts = {
                 -- this is needed for mistral to work peroperly
                 auto_submit_errors = true, -- Send any errors to the LLM automatically?
@@ -27,7 +39,7 @@ return {
             }
           },
           inline = {
-            adapter = "mistral_inline",
+            adapter = adapter,
           },
           agent = {
             adapter = adapter,
@@ -43,19 +55,40 @@ return {
         adapters = {
           http = {
             mistral = function()
+              return require("codecompanion.adapters").extend("mistral", {});
+            end,
+            codestral = function(self)
               return require("codecompanion.adapters").extend("mistral", {
+                name = "codestral",
+                formatted_name = "Mistral",
                 env = {
                   url = "https://codestral.mistral.ai/",
                   api_key = "CODESTRAL_API_KEY",
                 },
-                model = "codestral-latest"
+                model = "codestral-latest",
+                opts = {
+                  show_model_choices = false
+                },
+                schema = {
+                  ---@type CodeCompanion.Schema
+                  model = {
+                    default = "codestral-latest",
+                    choices = {
+                      "codestral-latest",
+                    },
+                  },
+                }
               })
             end,
             opts = {
+              show_defaults = false,
+              show_model_choices = true
+            }
+            --  opts = {
 --              allow_insecure = true,
 --              proxy = "http://127.0.0.1:4141",
-            },
-          }
+            -- },
+          },
         },
         opts = {
           log_level = "DEBUG"
