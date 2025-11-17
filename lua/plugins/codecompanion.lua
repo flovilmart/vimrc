@@ -54,13 +54,26 @@ return {
         },
         adapters = {
           http = {
+            azure_openai = function()
+              return require("codecompanion.adapters").extend("azure_openai", {
+                env = {
+                  api_key = "AZURE_OPENAI_API_KEY",
+                  endpoint = "AZURE_OPENAI_ENDPOINT",
+                },
+                schema = {
+                  model = {
+                    default = "gpt-5.1",
+                  },
+                },
+              });
+            end,
             mistral = function()
               return require("codecompanion.adapters").extend("mistral", {});
             end,
             codestral = function(self)
               return require("codecompanion.adapters").extend("mistral", {
                 name = "codestral",
-                formatted_name = "Mistral",
+                formatted_name = "CodeStral",
                 env = {
                   url = "https://codestral.mistral.ai/",
                   api_key = "CODESTRAL_API_KEY",
