@@ -56,11 +56,6 @@ vim.cmd [[
   map <leader>e :e! ~/.config/nvim<cr>
 ]]
 
--- vim.g.airline_theme = 'solrarized'
--- vim.g.airline_solarized_bg='dark'
--- vim.g["airline#extensions#ale#enabled"] = 0
-vim.g["airline#extensions#nvimlsp#enabled"] = 1
-
 return {
   'altercation/vim-colors-solarized',
   'sheerun/vim-wombat-scheme',
