@@ -9,7 +9,7 @@ set.so = 7
 set.langmenu = 'en_US.UTF-8'
 set.shell = os.getenv("SHELL")
 set.number = true
-set.cmdheight = 2
+set.cmdheight = 1
 set.whichwrap = 'b,s,<,>,[,],h,l'
 set.ignorecase = true
 set.smartcase = true
@@ -27,6 +27,7 @@ set.tw = 500  -- textwidth
 set.wrap = true
 set.ai = true
 set.si = true
+vim.o.laststatus = 3
 
 vim.g.solarized_termcolors = 256
 vim.g.solarized_termtrans = 1
@@ -45,6 +46,8 @@ vim.cmd [[
   set guioptions-=l
   set guioptions-=L
   set noswapfile
+  set nofoldenable
+
 
   highlight clear SignColumn
   highlight SignColumn ctermbg=none
@@ -54,11 +57,14 @@ vim.cmd [[
   highlight GitGutterChangeDelete ctermfg=4 ctermbg=none
 
   map <leader>e :e! ~/.config/nvim<cr>
+
+  autocmd Filetype typescript,javascript,c,cpp,rust,python setlocal foldmethod=expr
+  autocmd Filetype typescript,javascript,c,cpp,rust,python setlocal foldexpr=nvim_treesitter#foldexpr()
 ]]
 
 return {
-  'altercation/vim-colors-solarized',
-  'sheerun/vim-wombat-scheme',
+  -- 'altercation/vim-colors-solarized',
+  -- 'sheerun/vim-wombat-scheme',
   {
     'Tsuzat/neosolarized.nvim',
     config = function()
@@ -69,13 +75,36 @@ return {
       vim.cmd [[silent! colorscheme NeoSolarized]]
     end
   },
+  -- {
+  --   'shaunsingh/nord.nvim',
+  --   config = function()
+  --     -- require'NeoSolarized'.setup {
+  --     --   style = "dark", -- "dark" or "light"
+  --     --   transparent = true, -- true/false; Enable this to disable setting the background color
+  --     -- }
+  --     vim.cmd [[silent! colorscheme nord]]
+  --   end
+  -- },
   { 'nvim-lualine/lualine.nvim',
     config = function()
       require('lualine').setup {
         options = {
           theme = 'nord',
           section_separators = '',
-          component_separators = ''
+          component_separators = '',
+        },
+        sections = {
+          lualine_b = {
+            {}
+          },
+          lualine_c = {
+            {
+              'filename',
+              file_status = true, -- displays file status (readonly status, modified status)
+              path = 1 -- 0 = just filename, 1 = relative path, 2 = absolute path
+            }
+          },
+          lualine_x = {'lsp_status', 'filetype'},
         }
       }
     end,

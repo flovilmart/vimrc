@@ -39,7 +39,7 @@ return {
             }
           },
           inline = {
-            adapter = adapter,
+            adapter = 'azure_openai',
           },
           agent = {
             adapter = adapter,
@@ -53,6 +53,17 @@ return {
           },
         },
         adapters = {
+          acp = {
+                vibe = function()
+                  return require("codecompanion.adapters").extend("claude_code", {
+                    commands = {
+                      default = {
+                        "vibe-acp",
+                      },
+                    },
+                  })
+                end,
+          },
           http = {
             azure_openai = function()
               return require("codecompanion.adapters").extend("azure_openai", {

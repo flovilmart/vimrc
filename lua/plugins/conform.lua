@@ -23,8 +23,8 @@ return {
     local conform = require("conform")
     conform.setup({
       formatters_by_ft = {
-        javascript = { "prettier", "eslint", },
-        typescript = { "prettier", "eslint" },
+        javascript = { "eslint_d", "prettier" },
+        typescript = { "eslint_d", "prettier" },
         javascriptreact = { "prettier" },
         typescriptreact = { "prettier" },
         svelte = { "prettier" },
@@ -35,6 +35,8 @@ return {
         markdown = { "prettier" },
         graphql = { "prettier" },
         ruby = { 'rubocop' },
+        terraform = { 'terraform_fmt' },
+        sql = { 'pg_format' },
         ["*"] = { "trim_whitespace" },
       },
       format_after_save = function(bufnr)

@@ -10,42 +10,77 @@ function config()
     dap.set_breakpoint(vim.fn.input('Breakpoint condition: '))
   end)
 
-  require("dap-vscode-js").setup({
-    -- node_path = "node", -- Path of node executable. Defaults to $NODE_PATH, and then "node"
-    -- debugger_path = "(runtimedir)/site/pack/packer/opt/vscode-js-debug", -- Path to vscode-js-debug installation.
-    -- debugger_cmd = { "extension" }, -- Command to use to launch the debug server. Takes precedence over `node_path` and `debugger_path`.
-    adapters = { 'chrome', 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost', 'node', 'chrome' }, -- which adapters to register in nvim-dap
-    -- log_file_path = "(stdpath cache)/dap_vscode_js.log" -- Path for file logging
-    -- log_file_level = false -- Logging level for output to file. Set to false to disable file logging.
-    -- log_console_level = vim.log.levels.ERROR -- Logging level for output to console. Set to false to disable console output.
-  })
+  vim.keymap.set('n', '<leader>de', function()
+    vim.ui.input({ prompt = 'Enter the port number: ', default = '9229' }, function(input)
+    if input then
+      local port = tonumber(input)
+      if port and port > 0 and port < 65536 then
+        require("dap").adapters["node"] = {
+          type = "server",
+          host = "localhost",
+          port = port,
+          executable = {
+            command = "node",
+            -- 💀 Make sure to update this path to point to your installation
+            args = {"/Users/florentvilmart/src/microsoft/js-debug/src/dapDebugServer.js", port},
+          },
+          enrich_config = function(config, on_config)
+            local final_config = vim.deepcopy(config)
+            on_config(final_config)
+          end
+        }
+        print('Debugger configured to use port: ' .. port)
+        dapui.open({})
+        dap.continue({ configuration = "Attach" })
+      else
+        print('Invalid port number. Please enter a number between 1 and 65535.')
+      end
+    end
+end)
+  end)
+
+  require("dap").adapters["node"] = {
+    type = "server",
+    host = "localhost",
+    port = "${port}",
+    executable = {
+      command = "node",
+      -- 💀 Make sure to update this path to point to your installation
+      args = {"/Users/florentvilmart/src/microsoft/js-debug/src/dapDebugServer.js", "${port}"},
+    },
+    enrich_config = function(config, on_config)
+      local final_config = vim.deepcopy(config)
+      on_config(final_config)
+    end
+  }
 
   local js_based_languages = { "typescript", "javascript", "typescriptreact" }
 
   for _, language in ipairs(js_based_languages) do
     dap.configurations[language] = {
       {
-        type = "pwa-node",
-        request = "launch",
-        name = "Launch file",
-        program = "${file}",
-        cwd = "${workspaceFolder}",
-      },
-      {
-        type = "pwa-node",
+        type = "node",
         request = "attach",
         name = "Attach",
-        processId = require 'dap.utils'.pick_process,
-        cwd = "${workspaceFolder}",
-      },
-      {
-        type = "pwa-chrome",
-        request = "launch",
-        name = "Start Chrome with \"localhost\"",
-        url = "http://localhost:3000",
-        webRoot = "${workspaceFolder}",
-        userDataDir = "${workspaceFolder}/.vscode/vscode-chrome-debug-userdatadir"
+        host = "localhost",
+        port = 9229,
+        cwd = "${workspaceFolder}"
       }
+      -- {
+      --   type = "node",
+      --   request = "launch",
+      --   name = "Launch file",
+      --   program = "${file}",
+      --   cwd = "${workspaceFolder}",
+      -- },
+      -- {
+      --   type = "chrome",
+      --   request = "launch",
+      --   name = "Start Chrome with \"localhost\"",
+      --   url = "http://localhost:3000",
+      --   webRoot = "${workspaceFolder}",
+      --   userDataDir = "${workspaceFolder}/.vscode/vscode-chrome-debug-userdatadir"
+      -- }
     }
   end
   dapui = require('dapui')
@@ -55,12 +90,12 @@ function config()
   dap.listeners.after.event_initialized["dapui_config"] = function()
     dapui.open({})
   end
-  dap.listeners.before.event_terminated["dapui_config"] = function()
-    dapui.close({})
-  end
-  dap.listeners.before.event_exited["dapui_config"] = function()
-    dapui.close({})
-  end
+  -- dap.listeners.before.event_terminated["dapui_config"] = function()
+  --   dapui.close({})
+  -- end
+  -- dap.listeners.before.event_exited["dapui_config"] = function()
+  --   dapui.close({})
+  -- end
 
   vim.keymap.set('n', '<leader>ui', require 'dapui'.toggle)
 end
@@ -70,7 +105,6 @@ return {
     'mfussenegger/nvim-dap',
     dependencies = {
       'rcarriga/nvim-dap-ui',
-      'mfussenegger/nvim-dap-vscode-js',
       'nvim-neotest/nvim-nio',
     },
     config = config

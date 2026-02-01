@@ -7,8 +7,11 @@ vim.cmd [[
 ]]
 
 return {
-  'github/copilot.vim',
+  'zbirenbaum/copilot.lua',
   config = function()
-    vim.keymap.set("i", "<C-n>", "<Plug>(copilot-next)", { silent = true }, "Copilot next")
+    require("copilot").setup({
+      suggestion = { enabled = false },
+      panel = { enabled = false },
+    })
   end
 }

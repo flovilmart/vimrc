@@ -15,6 +15,7 @@ function config_telescope()
 
   telescope = require('telescope')
   telescope.load_extension "file_browser"
+  telescope.load_extension "ui-select"
   telescope.setup {
     defaults = {
       file_ignore_patterns = { "^.git/", "node_modules" },
@@ -29,6 +30,7 @@ function config_telescope()
       file_browser = {
         theme = "dropdown",
       },
+      -- hijack_netrw = true,
     },
     pickers = {
       buffers = {
@@ -43,13 +45,13 @@ function config_telescope()
   }
 
   -- Launch telescope when opening nvim with a directory
-  vim.cmd [[
-    augroup ReplaceNetrw
-        autocmd VimEnter * silent! autocmd! FileExplorer
-        autocmd StdinReadPre * let s:std_in=1
-        autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | call luaeval("require('telescope.builtin').find_files({hidden = true})", argv()[0]) | endif
-    augroup END
-  ]]
+  -- vim.cmd [[
+  --   augroup ReplaceNetrw
+  --       autocmd VimEnter * silent! autocmd! FileExplorer
+  --       autocmd StdinReadPre * let s:std_in=1
+  --       autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | call luaeval("require('telescope.builtin').find_files({hidden = true})", argv()[0]) | endif
+  --   augroup END
+  -- ]]
   -- autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | call luaeval("require('telescope').extensions.file_browser.file_browser({cwd = _A})", argv()[0]) | endif
 
 end
@@ -60,6 +62,12 @@ return {
   },
   {
     'nvim-telescope/telescope-file-browser.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+    },
+  },
+  {
+    'nvim-telescope/telescope-ui-select.nvim',
     dependencies = {
       'nvim-telescope/telescope.nvim',
     },

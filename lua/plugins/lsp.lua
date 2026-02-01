@@ -4,19 +4,45 @@ function config()
 
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
-  local servers = { "ts_ls", "tsserver", "pyright", "bashls", "nushell", "graphql", "terraformls" }
+  local servers = { "ts_ls", "pyright", "bashls", "nushell", "graphql", "terraform_lsp", "sqlls" }
   -- local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+  local configs = {
+    gopls = {
+      cmd = { "gopls", "serve" },
+      settings = {
+
+        gopls = {
+          analyses = {
+            unusedparams = true,
+          },
+          staticcheck = false, -- breaks current build FIXME
+        },
+      },
+    },
+    terraform_lsp = {
+      cmd = {"ms-terraform-lsp", "serve"}
+    },
+    sqlls = {
+      cmd = {"sql-language-server", "up", "--method", "stdio"};
+    }
+  }
   local capabilities = require('vim.lsp.protocol').make_client_capabilities()
   capabilities = require('blink.cmp').get_lsp_capabilities(capabilities)
 
   for _, lsp in ipairs(servers) do
-    nvim_lsp[lsp] =  {
+    local lsp_config = {
   	  on_attach = lsp_common.on_attach,
   	  flags = {
   	    debounce_text_changes = 150,
   	  },
       capabilities = capabilities,
     }
+    if configs[lsp] then
+      for k, v in pairs(configs[lsp]) do
+        lsp_config[k] = v
+      end
+    end
+    nvim_lsp[lsp] = lsp_config
     vim.lsp.enable(lsp)
   end
 
@@ -102,9 +128,17 @@ function config()
   -- end
 end
 
+function deactivate()
+  local nvim_lsp = vim.lsp.config
+  for _, server in pairs(nvim_lsp) do
+    vim.lsp.disable(server.name)
+  end
+end
+
 return {
   { 'neovim/nvim-lspconfig',
     config = config,
+    deactivate = deactivate,
     dependencies = { 'hrsh7th/cmp-nvim-lsp', 'mfussenegger/nvim-jdtls' }
 },
  --   { 'simrat39/rust-tools.nvim', }
