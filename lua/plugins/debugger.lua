@@ -15,20 +15,37 @@ function config()
     if input then
       local port = tonumber(input)
       if port and port > 0 and port < 65536 then
-        require("dap").adapters["node"] = {
-          type = "server",
-          host = "localhost",
-          port = port,
-          executable = {
-            command = "node",
-            -- 💀 Make sure to update this path to point to your installation
-            args = {"/Users/florentvilmart/src/microsoft/js-debug/src/dapDebugServer.js", port},
-          },
-          enrich_config = function(config, on_config)
-            local final_config = vim.deepcopy(config)
-            on_config(final_config)
-          end
-        }
+  local js_based_languages = { "typescript", "javascript", "typescriptreact" }
+
+        for _, language in ipairs(js_based_languages) do
+          dap.configurations[language] = {
+            {
+              type = "pwa-node",
+              request = "attach",
+              name = "Attach",
+              host = "localhost",
+              port = port,
+              cwd = "${workspaceFolder}",
+              restart = true,
+              continueOnAttach = true
+            }
+            -- {
+            --   type = "node",
+            --   request = "launch",
+            --   name = "Launch file",
+            --   program = "${file}",
+            --   cwd = "${workspaceFolder}",
+            -- },
+            -- {
+            --   type = "chrome",
+            --   request = "launch",
+            --   name = "Start Chrome with \"localhost\"",
+            --   url = "http://localhost:3000",
+            --   webRoot = "${workspaceFolder}",
+            --   userDataDir = "${workspaceFolder}/.vscode/vscode-chrome-debug-userdatadir"
+            -- }
+          }
+        end
         print('Debugger configured to use port: ' .. port)
         dapui.open({})
         dap.continue({ configuration = "Attach" })
@@ -39,7 +56,7 @@ function config()
 end)
   end)
 
-  require("dap").adapters["node"] = {
+  require("dap").adapters["pwa-node"] = {
     type = "server",
     host = "localhost",
     port = "${port}",
@@ -59,12 +76,14 @@ end)
   for _, language in ipairs(js_based_languages) do
     dap.configurations[language] = {
       {
-        type = "node",
+        type = "pwa-node",
         request = "attach",
         name = "Attach",
         host = "localhost",
         port = 9229,
-        cwd = "${workspaceFolder}"
+        cwd = "${workspaceFolder}",
+        restart = true,
+        continueOnAttach = true
       }
       -- {
       --   type = "node",
