@@ -63,28 +63,18 @@ vim.cmd [[
 ]]
 
 return {
-  -- 'altercation/vim-colors-solarized',
-  -- 'sheerun/vim-wombat-scheme',
-  {
-    'Tsuzat/neosolarized.nvim',
+  { "catppuccin/nvim", name = "catppuccin", priority = 1000,
     config = function()
-      require'NeoSolarized'.setup {
-        style = "dark", -- "dark" or "light"
-        transparent = true, -- true/false; Enable this to disable setting the background color
+      require("catppuccin").setup {
+          custom_highlights = function(colors)
+              return {
+                  WinSeparator = { fg = colors.blue},
+              }
+          end
       }
-      vim.cmd [[silent! colorscheme NeoSolarized]]
+      vim.cmd [[silent! colorscheme catppuccin-frappe]]
     end
   },
-  -- {
-  --   'shaunsingh/nord.nvim',
-  --   config = function()
-  --     -- require'NeoSolarized'.setup {
-  --     --   style = "dark", -- "dark" or "light"
-  --     --   transparent = true, -- true/false; Enable this to disable setting the background color
-  --     -- }
-  --     vim.cmd [[silent! colorscheme nord]]
-  --   end
-  -- },
   { 'nvim-lualine/lualine.nvim',
     config = function()
       require('lualine').setup {
