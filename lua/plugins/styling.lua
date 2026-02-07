@@ -79,7 +79,7 @@ return {
     config = function()
       require('lualine').setup {
         options = {
-          theme = 'nord',
+          theme = 'catppuccin-macchiato',
           section_separators = '',
           component_separators = '',
         },
