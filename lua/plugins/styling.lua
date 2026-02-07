@@ -72,7 +72,7 @@ return {
               }
           end
       }
-      vim.cmd [[silent! colorscheme catppuccin-frappe]]
+      vim.cmd [[silent! colorscheme catppuccin-macchiato]]
     end
   },
   { 'nvim-lualine/lualine.nvim',
