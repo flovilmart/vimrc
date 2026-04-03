@@ -7,7 +7,7 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
     config = function()
-      local adapter = "mistral"
+      local adapter = "codestral"
       require("codecompanion").setup({
         extensions = {
             mcphub = {
@@ -28,7 +28,7 @@ return {
           },
         strategies = {
           chat = {
-            adapter = { name = adapter, model = "magistral-small-latest" },
+            adapter = { name = adapter, model = 'codestral-latest' },
             tools = {
               opts = {
                 -- this is needed for mistral to work peroperly
