@@ -20,19 +20,34 @@ install_brew_deps() {
 
 install_apk_deps() {
   if command -v apk > /dev/null; then
-    apk add nodejs npm ruby ruby-dev make clang ripgrep openssl
+    # gcc + musl-dev give nvim-treesitter a working `cc` with linker and libc headers;
+    # clang alone fails every parser compile with "posix_spawn failed".
+    apk add nodejs npm ruby ruby-dev make gcc musl-dev ripgrep openssl
   fi
 }
 
 install_nvim_deps() {
-  nvim -c "lua require('lazy').install()" -c "write ${TMPDIR}/PlugInstall.out" -c quitall
+  # wait=true blocks until every plugin, including nvim-treesitter's `:TSUpdate`
+  # build hook, has finished; otherwise quitall can interrupt the parser builds.
+  nvim --headless -c "lua require('lazy').install({ wait = true })" -c "write ${TMPDIR}/PlugInstall.out" -c quitall
   cat ${TMPDIR}/PlugInstall.out
-  nvim -c "lua require('lazy').health()" -c "write ${TMPDIR}/PlugStatus.out" -c quitall
+  nvim --headless -c "lua require('lazy').health()" -c "write ${TMPDIR}/PlugStatus.out" -c quitall
 	cat ${TMPDIR}/PlugStatus.out
 }
 
 setup_treesitter() {
-  nvim +TSUpdateSync +quitall
+  # Parsers were built by the lazy build hook above; this is a fast no-op when
+  # they are up to date and a real build only if something is missing. Fail
+  # loudly instead of leaving an image without parsers.
+  nvim --headless +TSUpdateSync +quitall
+  missing=""
+  for lang in ruby typescript javascript go lua vim query vimdoc c rust nu; do
+    test -f "${HOME}/.local/share/nvim/lazy/nvim-treesitter/parser/${lang}.so" || missing="${missing} ${lang}"
+  done
+  if [ -n "${missing}" ]; then
+    echo "treesitter parsers missing:${missing}" >&2
+    exit 1
+  fi
 }
 
 setup_shell() {
