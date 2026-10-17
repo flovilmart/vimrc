@@ -20,7 +20,7 @@ function config()
       },
     },
     terraform_lsp = {
-      cmd = {"ms-terraform-lsp", "serve"}
+      cmd = {"terraform-ls", "serve"}
     },
     sqlls = {
       cmd = {"sql-language-server", "up", "--method", "stdio"};

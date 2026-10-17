@@ -21,7 +21,7 @@ return {
       -- preset = 'super-tab',
       preset = 'default',
       ['<Enter>'] = { 'select_and_accept', 'fallback' },
-      ['<Tab>'] = { 'insert_next', 'fallback' },
+      -- ['<Tab>'] = { 'insert_next', 'fallback' },
       ['<S-Tab>'] = { 'insert_prev', 'fallback' }
     },
     sources = {
